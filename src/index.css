@@ -1,0 +1,162 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════
+   DESIGN TOKENS — Funnel Builder
+   4 radius values. No exceptions.
+   ═══════════════════════════════════════════ */
+
+:root {
+  /* Radius system — exactly 4 sizes */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+
+  /* Semantic surfaces */
+  --bg-app: #f5f5f7;
+  --bg-card: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-subtle: #f0f0f2;
+  --bg-inset: #e8e8ec;
+
+  /* Text */
+  --text-primary: #1d1d1f;
+  --text-secondary: rgba(29, 29, 31, 0.55);
+  --text-tertiary: rgba(29, 29, 31, 0.3);
+  --text-inverse: #ffffff;
+
+  /* Brand */
+  --brand: oklch(0.45 0.18 265);
+  --brand-hover: oklch(0.5 0.2 265);
+  --brand-subtle: oklch(0.45 0.18 265 / 0.08);
+  --brand-gradient: linear-gradient(135deg, oklch(0.48 0.2 270), oklch(0.38 0.18 250));
+
+  /* Borders */
+  --border-default: rgba(0, 0, 0, 0.06);
+  --border-hover: rgba(0, 0, 0, 0.12);
+  --border-focus: oklch(0.45 0.18 265);
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.08);
+
+  /* Status */
+  --status-draft-bg: #fef3c7;
+  --status-draft-text: #d97706;
+  --status-draft-dot: #f59e0b;
+  --status-live-bg: #d1fae5;
+  --status-live-text: #059669;
+  --status-live-dot: #10b981;
+  --status-preview-bg: #dbeafe;
+  --status-preview-text: #2563eb;
+  --status-preview-dot: #3b82f6;
+
+  /* Dark theme (auth pages) */
+  --dark-bg: #0a0a12;
+  --dark-surface: rgba(255, 255, 255, 0.06);
+  --dark-surface-hover: rgba(255, 255, 255, 0.1);
+  --dark-border: rgba(255, 255, 255, 0.08);
+  --dark-text: rgba(255, 255, 255, 0.9);
+  --dark-text-secondary: rgba(255, 255, 255, 0.5);
+  --dark-text-tertiary: rgba(255, 255, 255, 0.25);
+
+  /* Typography scale */
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-md: 15px;
+  --text-lg: 17px;
+  --text-xl: 22px;
+  --text-2xl: 26px;
+}
+
+/* ═══════════════════════════════════════════
+   BASE STYLES
+   ═══════════════════════════════════════════ */
+
+* {
+  border-color: var(--border-default);
+}
+
+body {
+  color: var(--text-primary);
+  font-family: "SF Pro Display", "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  letter-spacing: -0.011em;
+}
+
+::selection {
+  background: oklch(0.45 0.18 265 / 0.2);
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.15); border-radius: 100px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.25); }
+
+/* ═══════════════════════════════════════════
+   PUCK EDITOR OVERRIDES
+   Match our design system, not Puck defaults
+   ═══════════════════════════════════════════ */
+
+[class*="Puck-"] { font-family: inherit !important; }
+
+[class*="PuckLayout-header"] {
+  background: var(--bg-card) !important;
+  border-bottom: 1px solid var(--border-default) !important;
+}
+
+[class*="PuckLayout-leftSideBar"],
+[class*="PuckLayout-rightSideBar"] {
+  background: var(--bg-card) !important;
+  border-color: var(--border-default) !important;
+}
+
+[class*="ComponentList-item"],
+[class*="Drawer-item"] {
+  border-radius: var(--radius-md) !important;
+  transition: all 0.15s ease !important;
+}
+
+[class*="ComponentList-item"]:hover,
+[class*="Drawer-item"]:hover {
+  background: var(--bg-subtle) !important;
+}
+
+[class*="FieldLabel"] {
+  font-size: var(--text-sm) !important;
+  font-weight: 500 !important;
+  color: var(--text-secondary) !important;
+}
+
+[class*="Puck"] input,
+[class*="Puck"] select,
+[class*="Puck"] textarea {
+  border-radius: var(--radius-md) !important;
+  border-color: var(--border-default) !important;
+  font-size: var(--text-base) !important;
+  transition: all 0.15s ease !important;
+}
+
+[class*="Puck"] input:focus,
+[class*="Puck"] select:focus,
+[class*="Puck"] textarea:focus {
+  border-color: var(--border-focus) !important;
+  box-shadow: 0 0 0 3px var(--brand-subtle) !important;
+}
+
+[class*="Puck"] button {
+  border-radius: var(--radius-md) !important;
+  transition: all 0.15s ease !important;
+}
+
+/* Hide Puck's Publish button */
+[class*="PuckLayout-header"] button[class*="publish"],
+[class*="PuckLayout"] [class*="headerActions"] > button:last-child {
+  display: none !important;
+}

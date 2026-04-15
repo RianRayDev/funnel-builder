@@ -1,0 +1,14 @@
+node_modules
+dist
+.env
+.DS_Store
+*.local
+*.tsbuildinfo
+
+# Claude Code
+.claude/
+CLAUDE.md
+
+# Internal dev notes
+docs/CLICKFUNNELS-ANALYSIS.md
+docs/superpowers/
