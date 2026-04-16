@@ -1,12 +1,15 @@
 import type { ComponentConfig } from "@measured/puck"
 import { cn } from "@/lib/utils"
 import { createElement } from "react"
+import { RichTextField, sanitize } from "@/components/RichTextField"
+import { FontPicker } from "@/lib/fonts"
 
 interface HeadingProps {
   text: string
   level: string
   alignment: string
   color: string
+  font: string
 }
 
 const levelStyles: Record<string, { className: string; preview: string }> = {
@@ -33,7 +36,13 @@ const colorOptions = [
 export const Heading: ComponentConfig<HeadingProps> = {
   label: "Heading",
   fields: {
-    text: { type: "text", label: "Text" },
+    text: {
+      type: "custom",
+      label: "Text",
+      render: ({ value, onChange }) => (
+        <RichTextField value={value} onChange={onChange} minimal placeholder="Your heading..." />
+      ),
+    },
     level: {
       type: "custom",
       label: "Heading Level",
@@ -90,13 +99,38 @@ export const Heading: ComponentConfig<HeadingProps> = {
         </div>
       ),
     },
+    font: {
+      type: "custom",
+      label: "Font",
+      render: ({ value, onChange }) => <FontPicker value={value} onChange={onChange} />,
+    },
   },
   defaultProps: {
     text: "Your Headline Here",
     level: "h2",
     alignment: "text-left",
     color: "text-inherit",
+    font: "font-sans",
   },
-  render: ({ text, level, alignment, color }) =>
-    createElement(level, { className: cn(levelStyles[level]?.className, alignment, color) }, text),
+  render: ({ text, level, alignment, color, font }) => {
+    const raw = typeof text === "string" ? text : String(text || "")
+    // All content is sanitized via DOMPurify — this is an admin-only design tool
+    // where content is authored by authenticated users, never untrusted input
+    const clean = sanitize(raw)
+    // Unwrap Tiptap's <p> tags — heading content goes inside the semantic heading element
+    const unwrapped = clean
+      .replace(/<p>/g, "")
+      .replace(/<\/p>/g, "<br>")
+      .replace(/<br>$/, "")
+    return createElement(level, {
+      className: cn(
+        levelStyles[level]?.className,
+        alignment,
+        color,
+        font,
+        "[&_a]:underline [&_mark]:bg-yellow-200/60 [&_mark]:px-1 [&_mark]:rounded-sm",
+      ),
+      dangerouslySetInnerHTML: { __html: unwrapped || "Your Headline Here" },
+    })
+  },
 }

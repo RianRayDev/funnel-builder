@@ -23,32 +23,62 @@ export const BulletList: ComponentConfig<BulletListProps> = {
   fields: {
     items: {
       type: "array", label: "Items",
-      arrayFields: { text: { type: "text", label: "Text" } },
+      arrayFields: { text: { type: "textarea", label: "Text" } },
     },
     icon: {
-      type: "select", label: "Icon",
-      options: [
-        { value: "check", label: "Checkmark" },
-        { value: "chevron", label: "Chevron" },
-        { value: "circle", label: "Bullet" },
-        { value: "star", label: "Star" },
-        { value: "arrow", label: "Arrow" },
-      ],
+      type: "custom", label: "Icon",
+      render: ({ value, onChange }) => (
+        <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
+          {[
+            { v: "check", l: "✓" },
+            { v: "chevron", l: "›" },
+            { v: "circle", l: "●" },
+            { v: "star", l: "★" },
+            { v: "arrow", l: "→" },
+          ].map((opt) => (
+            <button key={opt.v} type="button" onClick={() => onChange(opt.v)}
+              className={cn("flex-1 rounded-md py-1.5 text-center text-xs transition-all",
+                value === opt.v ? "bg-white shadow-sm font-medium" : "text-gray-400")}>
+              {opt.l}
+            </button>
+          ))}
+        </div>
+      ),
     },
     iconColor: {
-      type: "select", label: "Icon Color",
-      options: [
-        { value: "primary", label: "Primary" },
-        { value: "green", label: "Green" },
-        { value: "blue", label: "Blue" },
-        { value: "rose", label: "Rose" },
-        { value: "amber", label: "Amber" },
-        { value: "muted", label: "Muted" },
-      ],
+      type: "custom", label: "Icon Color",
+      render: ({ value, onChange }) => (
+        <div className="flex flex-wrap gap-1.5">
+          {[
+            { v: "primary", swatch: "#4f46e5" },
+            { v: "green", swatch: "#10b981" },
+            { v: "blue", swatch: "#3b82f6" },
+            { v: "rose", swatch: "#f43f5e" },
+            { v: "amber", swatch: "#f59e0b" },
+            { v: "muted", swatch: "#94a3b8" },
+          ].map((opt) => (
+            <button key={opt.v} type="button" onClick={() => onChange(opt.v)}
+              className={cn("h-6 w-6 rounded-full border-2 transition-all",
+                value === opt.v ? "border-blue-500 scale-110 shadow-sm" : "border-gray-200")}
+              style={{ backgroundColor: opt.swatch }}
+            />
+          ))}
+        </div>
+      ),
     },
     size: {
-      type: "select", label: "Size",
-      options: [{ value: "text-sm", label: "Small" }, { value: "text-base", label: "Normal" }, { value: "text-lg", label: "Large" }],
+      type: "custom", label: "Size",
+      render: ({ value, onChange }) => (
+        <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
+          {[{ v: "text-sm", l: "S" }, { v: "text-base", l: "M" }, { v: "text-lg", l: "L" }].map((opt) => (
+            <button key={opt.v} type="button" onClick={() => onChange(opt.v)}
+              className={cn("flex-1 rounded-md py-1.5 text-center text-xs font-medium transition-all",
+                value === opt.v ? "bg-white shadow-sm" : "text-gray-400")}>
+              {opt.l}
+            </button>
+          ))}
+        </div>
+      ),
     },
   },
   defaultProps: {

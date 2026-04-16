@@ -1,8 +1,9 @@
-import { useRef, useState } from "react"
+import { useCallback, useRef, useState } from "react"
 import type { ComponentConfig } from "@measured/puck"
 import { cn } from "@/lib/utils"
-import { ImageIcon, Upload, Loader2, Link2, X } from "lucide-react"
-import { supabase } from "@/lib/supabase"
+import { ImageIcon, Upload, Loader2, Grid2x2, X } from "lucide-react"
+import { uploadToStorage, deleteFromStorage } from "@/hooks/useStorage"
+import { ImageLibrary } from "@/components/ImageLibrary"
 
 interface ImageBlockProps {
   src: string
@@ -10,42 +11,80 @@ interface ImageBlockProps {
   borderRadius: string
   objectFit: string
   maxHeight: string
+  objectPosition: string
 }
 
-const BUCKET = "funnel-assets"
+const positionOptions = [
+  { v: "top left", r: 0, c: 0 },
+  { v: "top center", r: 0, c: 1 },
+  { v: "top right", r: 0, c: 2 },
+  { v: "center left", r: 1, c: 0 },
+  { v: "center center", r: 1, c: 1 },
+  { v: "center right", r: 1, c: 2 },
+  { v: "bottom left", r: 2, c: 0 },
+  { v: "bottom center", r: 2, c: 1 },
+  { v: "bottom right", r: 2, c: 2 },
+]
 
-async function uploadFile(file: File): Promise<string | null> {
-  const ext = file.name.split(".").pop()
-  const name = `images/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
-  const { data, error } = await supabase.storage.from(BUCKET).upload(name, file, { cacheControl: "3600", upsert: false })
-  if (error) return null
-  const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(data.path)
-  return urlData.publicUrl
+function validateFile(file: File): string | null {
+  if (!file.type.startsWith("image/")) return "Not an image file"
+  if (file.size > 5 * 1024 * 1024) return "Max 5MB"
+  return null
 }
 
 function ImageUploadField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const fileRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState("")
-  const [mode, setMode] = useState<"upload" | "url">(value ? "url" : "upload")
+  const [mode, setMode] = useState<"upload" | "library">(value ? "library" : "upload")
+  const [dragging, setDragging] = useState(false)
+  const dragCounter = useRef(0)
 
-  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (!file.type.startsWith("image/")) { setError("Not an image file"); return }
-    if (file.size > 5 * 1024 * 1024) { setError("Max 5MB"); return }
+  const processFile = useCallback(async (file: File) => {
+    const validationError = validateFile(file)
+    if (validationError) { setError(validationError); return }
 
     setUploading(true)
     setError("")
-    const url = await uploadFile(file)
+
+    const result = await uploadToStorage(file)
     setUploading(false)
 
-    if (url) {
-      onChange(url)
-      setMode("url")
+    if (result.url) {
+      onChange(result.url)
+      setMode("library")
     } else {
-      setError("Upload failed — check Supabase bucket exists")
+      setError(result.error || "Upload failed")
     }
+  }, [onChange])
+
+  function handleFileInput(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) processFile(file)
+    if (fileRef.current) fileRef.current.value = ""
+  }
+
+  function handleDragEnter(e: React.DragEvent) {
+    e.preventDefault(); e.stopPropagation()
+    dragCounter.current++
+    if (e.dataTransfer.items?.length) setDragging(true)
+  }
+
+  function handleDragLeave(e: React.DragEvent) {
+    e.preventDefault(); e.stopPropagation()
+    dragCounter.current--
+    if (dragCounter.current === 0) setDragging(false)
+  }
+
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault(); e.stopPropagation()
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault(); e.stopPropagation()
+    setDragging(false); dragCounter.current = 0
+    const file = e.dataTransfer.files?.[0]
+    if (file) processFile(file)
   }
 
   return (
@@ -57,41 +96,51 @@ function ImageUploadField({ value, onChange }: { value: string; onChange: (v: st
             mode === "upload" ? "bg-white shadow-sm text-gray-700" : "text-gray-400")}>
           <Upload className="h-3 w-3" /> Upload
         </button>
-        <button type="button" onClick={() => setMode("url")}
+        <button type="button" onClick={() => setMode("library")}
           className={cn("flex-1 flex items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-medium transition-all",
-            mode === "url" ? "bg-white shadow-sm text-gray-700" : "text-gray-400")}>
-          <Link2 className="h-3 w-3" /> URL
+            mode === "library" ? "bg-white shadow-sm text-gray-700" : "text-gray-400")}>
+          <Grid2x2 className="h-3 w-3" /> Library
         </button>
       </div>
 
       {mode === "upload" ? (
-        <div>
-          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+        <div
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+        >
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileInput} />
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
             disabled={uploading}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-200 py-4 text-xs font-medium text-gray-400 transition-colors hover:border-blue-300 hover:text-blue-500 disabled:opacity-50"
+            className={cn(
+              "flex w-full flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed py-5 text-xs font-medium transition-all disabled:opacity-50",
+              dragging
+                ? "border-blue-400 bg-blue-50 text-blue-500"
+                : "border-gray-200 text-gray-400 hover:border-blue-300 hover:text-blue-500",
+            )}
           >
-            {uploading ? <><Loader2 className="h-4 w-4 animate-spin" /> Uploading...</> : <><Upload className="h-4 w-4" /> Click to upload image</>}
+            {uploading ? (
+              <><Loader2 className="h-5 w-5 animate-spin" /><span>Uploading...</span></>
+            ) : dragging ? (
+              <><Upload className="h-5 w-5" /><span>Drop image here</span></>
+            ) : (
+              <><Upload className="h-5 w-5" /><span>Drag & drop or click to upload</span></>
+            )}
           </button>
           <p className="mt-1 text-[10px] text-gray-400">JPG, PNG, WebP, GIF — max 5MB</p>
         </div>
       ) : (
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="https://example.com/image.jpg"
-          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
-        />
+        <ImageLibrary onSelect={onChange} currentValue={value} />
       )}
 
       {/* Preview */}
       {value && (
         <div className="relative">
           <img src={value} alt="Preview" className="h-20 w-full rounded-lg object-cover" />
-          <button type="button" onClick={() => onChange("")}
+          <button type="button" onClick={() => { deleteFromStorage(value); onChange("") }}
             className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-black/80">
             <X className="h-3 w-3" />
           </button>
@@ -150,6 +199,30 @@ export const ImageBlock: ComponentConfig<ImageBlockProps> = {
         { value: "max-h-[500px]", label: "XL (500px)" },
       ],
     },
+    objectPosition: {
+      type: "custom",
+      label: "Focus Point",
+      render: ({ value, onChange }) => (
+        <div className="space-y-1.5">
+          <div className="mx-auto grid w-20 grid-cols-3 gap-1 rounded-lg bg-gray-100 p-1.5">
+            {positionOptions.map((opt) => (
+              <button
+                key={opt.v}
+                type="button"
+                onClick={() => onChange(opt.v)}
+                className={cn(
+                  "h-5 w-5 rounded-full border-2 transition-all",
+                  value === opt.v
+                    ? "border-blue-500 bg-blue-500 scale-110"
+                    : "border-gray-300 bg-white hover:border-gray-400",
+                )}
+              />
+            ))}
+          </div>
+          <p className="text-center text-[9px] text-gray-400">{value || "center center"}</p>
+        </div>
+      ),
+    },
   },
   defaultProps: {
     src: "",
@@ -157,15 +230,16 @@ export const ImageBlock: ComponentConfig<ImageBlockProps> = {
     borderRadius: "rounded-xl",
     objectFit: "object-cover",
     maxHeight: "",
+    objectPosition: "center center",
   },
-  render: ({ src, alt, borderRadius, objectFit, maxHeight }) =>
+  render: ({ src, alt, borderRadius, objectFit, maxHeight, objectPosition }) =>
     src ? (
-      <img src={src} alt={alt} loading="lazy" className={cn("w-full", borderRadius, objectFit, maxHeight)} />
+      <img src={src} alt={alt} loading="lazy" className={cn("w-full", borderRadius, objectFit, maxHeight)} style={{ objectPosition: objectPosition || "center center" }} />
     ) : (
       <div className={cn("flex h-48 w-full items-center justify-center bg-gray-100", borderRadius)}>
         <div className="flex flex-col items-center gap-2 text-gray-300">
           <ImageIcon className="h-10 w-10" />
-          <span className="text-xs font-medium">Upload or paste image URL</span>
+          <span className="text-xs font-medium">Upload or pick from library</span>
         </div>
       </div>
     ),

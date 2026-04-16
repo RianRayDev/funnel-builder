@@ -1,18 +1,20 @@
 import type { ComponentConfig } from "@measured/puck"
 import { cn } from "@/lib/utils"
+import { RichTextField, RichTextContent } from "@/components/RichTextField"
+import { FontPicker } from "@/lib/fonts"
 
 interface TextBlockProps {
   content: string
-  alignment: string
   size: string
   color: string
+  font: string
 }
 
 const sizeOptions = [
-  { value: "text-sm", label: "Small", preview: "Aa" },
-  { value: "text-base", label: "Normal", preview: "Aa" },
-  { value: "text-lg", label: "Large", preview: "Aa" },
-  { value: "text-xl", label: "X-Large", preview: "Aa" },
+  { value: "text-sm", label: "S" },
+  { value: "text-base", label: "M" },
+  { value: "text-lg", label: "L" },
+  { value: "text-xl", label: "XL" },
 ]
 
 const colorOptions = [
@@ -27,23 +29,11 @@ const colorOptions = [
 export const TextBlock: ComponentConfig<TextBlockProps> = {
   label: "Text",
   fields: {
-    content: { type: "textarea", label: "Content" },
-    alignment: {
+    content: {
       type: "custom",
-      label: "Alignment",
+      label: "Content",
       render: ({ value, onChange }) => (
-        <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
-          {[
-            { v: "text-left", label: "Left", icon: "☰" },
-            { v: "text-center", label: "Center", icon: "≡" },
-            { v: "text-right", label: "Right", icon: "☰" },
-          ].map((opt) => (
-            <button key={opt.v} type="button" onClick={() => onChange(opt.v)} title={opt.label}
-              className={cn("flex-1 rounded-md py-1.5 text-center text-sm transition-all", value === opt.v ? "bg-white shadow-sm font-medium" : "text-gray-400 hover:text-gray-600")}>
-              {opt.icon}
-            </button>
-          ))}
-        </div>
+        <RichTextField value={value} onChange={onChange} showAlign placeholder="Start writing..." />
       ),
     },
     size: {
@@ -53,13 +43,8 @@ export const TextBlock: ComponentConfig<TextBlockProps> = {
         <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
           {sizeOptions.map((opt) => (
             <button key={opt.value} type="button" onClick={() => onChange(opt.value)}
-              className={cn("flex-1 rounded-md py-1.5 text-center transition-all",
-                value === opt.value ? "bg-white shadow-sm" : "hover:bg-gray-50",
-                opt.value === "text-sm" && "text-[10px]",
-                opt.value === "text-base" && "text-xs",
-                opt.value === "text-lg" && "text-sm",
-                opt.value === "text-xl" && "text-base",
-              )}>
+              className={cn("flex-1 rounded-md py-1.5 text-center text-xs font-medium transition-all",
+                value === opt.value ? "bg-white shadow-sm" : "text-gray-400")}>
               {opt.label}
             </button>
           ))}
@@ -83,14 +68,33 @@ export const TextBlock: ComponentConfig<TextBlockProps> = {
         </div>
       ),
     },
+    font: {
+      type: "custom",
+      label: "Font",
+      render: ({ value, onChange }) => <FontPicker value={value} onChange={onChange} />,
+    },
   },
   defaultProps: {
-    content: "Add your text content here. This can be a paragraph, description, or any body text for your funnel page.",
-    alignment: "text-left",
+    content: "",
     size: "text-base",
     color: "text-inherit",
+    font: "font-sans",
   },
-  render: ({ content, alignment, size, color }) => (
-    <p className={cn("leading-relaxed", alignment, size, color === "text-inherit" ? "opacity-80" : color)}>{content}</p>
-  ),
+  render: ({ content, size, color, font }) => {
+    if (!content) {
+      return (
+        <p className={cn("leading-relaxed", size, font, "text-slate-400/60 italic")}>
+          Click to add text...
+        </p>
+      )
+    }
+    return (
+      <div className={cn("leading-relaxed", size, font, color === "text-inherit" ? "opacity-80" : color)}>
+        <RichTextContent
+          html={content}
+          className="[&_p]:mb-2 [&_p:last-child]:mb-0 [&_a]:text-blue-600 [&_a]:underline [&_mark]:bg-yellow-200/60 [&_mark]:px-0.5 [&_mark]:rounded-sm"
+        />
+      </div>
+    )
+  },
 }

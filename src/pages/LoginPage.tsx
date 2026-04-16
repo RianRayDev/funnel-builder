@@ -25,7 +25,7 @@ export function LoginPage() {
     e.preventDefault(); setError(""); setSubmitting(true)
     const { error } = await signIn(email, password)
     setSubmitting(false)
-    if (error) setError(error.message); else navigate("/dashboard")
+    if (error) setError(error.message); else navigate("/funnel-builder")
   }
 
   async function handleRegister(e: React.FormEvent) {
@@ -36,7 +36,7 @@ export function LoginPage() {
     setSubmitting(true)
     const { error } = await signUp(email, password, name.trim())
     setSubmitting(false)
-    if (error) setError(error.message); else navigate("/dashboard")
+    if (error) setError(error.message); else navigate("/funnel-builder")
   }
 
   async function handleForgot(e: React.FormEvent) {

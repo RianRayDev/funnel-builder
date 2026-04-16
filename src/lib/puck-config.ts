@@ -18,12 +18,13 @@ import { BulletList } from "@/components/puck-elements/BulletList"
 import { PricingTable } from "@/components/puck-elements/PricingTable"
 import { HTMLEmbed } from "@/components/puck-elements/HTMLEmbed"
 import { ProgressBar } from "@/components/puck-elements/ProgressBar"
+import { Banner } from "@/components/puck-elements/Banner"
 
 export const puckConfig: Config = {
   categories: {
     layout: {
       title: "Layout",
-      components: ["Section", "Columns", "Spacer", "Divider"],
+      components: ["Section", "Banner", "Columns", "Spacer", "Divider"],
     },
     content: {
       title: "Content",
@@ -40,6 +41,7 @@ export const puckConfig: Config = {
   },
   components: {
     Section: Section as any,
+    Banner: Banner as any,
     Heading: Heading as any,
     TextBlock: TextBlock as any,
     BulletList: BulletList as any,

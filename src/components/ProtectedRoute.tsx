@@ -16,7 +16,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!user && !DEV_BYPASS) {
-    return <Navigate to="/" replace />
+    return <Navigate to="/auth" replace />
   }
 
   return <>{children}</>

@@ -3,9 +3,18 @@ import type { Data } from "@measured/puck"
 
 const STORAGE_KEY = "funnel-builder-projects"
 
+function migrateStatus(status: string): Project["status"] {
+  if (status === "draft") return "building"
+  if (status === "preview") return "ready"
+  return status as Project["status"]
+}
+
 function getProjects(): Project[] {
   const raw = localStorage.getItem(STORAGE_KEY)
-  return raw ? JSON.parse(raw) : []
+  if (!raw) return []
+  const projects: Project[] = JSON.parse(raw)
+  // Auto-migrate old status values
+  return projects.map((p) => ({ ...p, status: migrateStatus(p.status) }))
 }
 
 function saveProjects(projects: Project[]) {
@@ -61,7 +70,7 @@ export const store = {
       id: crypto.randomUUID(),
       name,
       slug,
-      status: "draft",
+      status: "building",
       is_main: false,
       thumbnail_url: null,
       content: defaultContent(),

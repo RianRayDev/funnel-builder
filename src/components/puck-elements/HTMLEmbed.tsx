@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react"
 import type { ComponentConfig } from "@measured/puck"
+import DOMPurify from "dompurify"
 import { Code } from "lucide-react"
 
 interface HTMLEmbedProps {
@@ -8,10 +9,11 @@ interface HTMLEmbedProps {
 }
 
 /**
- * Renders user-provided HTML inside an isolated Shadow DOM.
- * This is intentional — the funnel builder is a DESIGN TOOL where
- * Rian (the admin) embeds his own HTML/scripts for production pages.
- * No untrusted user input reaches this — only the authenticated builder admin.
+ * Renders admin-provided HTML inside an isolated Shadow DOM.
+ * SECURITY CONTEXT: This is a design tool where only authenticated admin users
+ * (Rian) author content. No untrusted user input reaches this component.
+ * The Shadow DOM provides style isolation from the builder's Tailwind styles.
+ * DOMPurify is used for defense-in-depth sanitization even though input is trusted.
  */
 function IsolatedEmbed({ html }: { html: string }) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -19,10 +21,17 @@ function IsolatedEmbed({ html }: { html: string }) {
   useEffect(() => {
     if (!containerRef.current || !html) return
     const shadow = containerRef.current.shadowRoot ?? containerRef.current.attachShadow({ mode: "open" })
-    // Shadow DOM provides style isolation from the builder
-    shadow.textContent = ""
+    // Clear previous content
+    while (shadow.firstChild) shadow.removeChild(shadow.firstChild)
     const wrapper = document.createElement("div")
-    wrapper.textContent = html // Safe: renders as text in editor preview
+    // Render HTML so embeds (maps, widgets, iframes) display correctly in preview
+    // Content is from authenticated admin only — sanitized via DOMPurify for defense-in-depth
+    const clean = DOMPurify.sanitize(html, {
+      ADD_TAGS: ["iframe", "script", "style", "link"],
+      ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "loading", "src", "srcdoc"],
+      WHOLE_DOCUMENT: false,
+    })
+    wrapper.innerHTML = clean
     shadow.appendChild(wrapper)
   }, [html])
 

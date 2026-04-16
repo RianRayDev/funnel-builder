@@ -4,7 +4,7 @@ export interface Project {
   id: string
   name: string
   slug: string
-  status: "draft" | "preview" | "published"
+  status: "building" | "ready" | "published"
   is_main: boolean
   thumbnail_url: string | null
   content: Data

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { useNavigate } from "react-router"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -13,8 +13,8 @@ import { Dialog, DialogHeader, DialogTitle, DialogDescription } from "@/componen
 import type { Project } from "@/types"
 
 const statusConfig: Record<string, { label: string; bg: string; text: string; dot: string }> = {
-  draft: { label: "Draft", bg: "bg-amber-100", text: "text-amber-600", dot: "bg-amber-400" },
-  preview: { label: "Preview", bg: "bg-blue-100", text: "text-blue-600", dot: "bg-blue-400" },
+  building: { label: "Building", bg: "bg-amber-100", text: "text-amber-600", dot: "bg-amber-400" },
+  ready: { label: "Ready", bg: "bg-blue-100", text: "text-blue-600", dot: "bg-blue-400" },
   published: { label: "Live", bg: "bg-emerald-100", text: "text-emerald-600", dot: "bg-emerald-400" },
 }
 
@@ -40,6 +40,8 @@ export function DashboardPage() {
   const [selectedTemplate, setSelectedTemplate] = useState<FunnelTemplate>(templates[0])
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
   const [search, setSearch] = useState("")
+  const [importDragging, setImportDragging] = useState(false)
+  const importDragCounter = useRef(0)
 
   function refresh() { setProjects(store.list()) }
 
@@ -49,7 +51,7 @@ export function DashboardPage() {
     const project = store.create(newName.trim())
     if (selectedTemplate.id !== "blank") store.update(project.id, { content: structuredClone(selectedTemplate.data) })
     setNewName(""); setSelectedTemplate(templates[0]); setNewDialogOpen(false)
-    navigate(`/design/${project.is_main ? "main" : project.slug}`)
+    navigate(`/funnel-builder/design/${project.is_main ? "main" : project.slug}`)
   }
 
   function handleDelete(id: string) { store.delete(id); setMenuOpen(null); refresh() }
@@ -64,14 +66,25 @@ export function DashboardPage() {
     URL.revokeObjectURL(url); setMenuOpen(null)
   }
 
-  function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]; if (!file) return
+  function processImportFile(file: File) {
+    if (!file.name.endsWith(".json")) { alert("Only .json files are supported"); return }
     const reader = new FileReader()
     reader.onload = () => {
       try { const content = JSON.parse(reader.result as string); const name = file.name.replace(/\.json$/, ""); const project = store.create(name); store.update(project.id, { content }); setImportDialogOpen(false); refresh() }
       catch { alert("Invalid JSON file") }
     }
     reader.readAsText(file)
+  }
+
+  function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]; if (!file) return
+    processImportFile(file)
+  }
+
+  function handleImportDrop(e: React.DragEvent) {
+    e.preventDefault(); e.stopPropagation(); setImportDragging(false); importDragCounter.current = 0
+    const file = e.dataTransfer.files?.[0]
+    if (file) processImportFile(file)
   }
 
   const filtered = projects.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))
@@ -92,7 +105,7 @@ export function DashboardPage() {
               <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#1d1d1f]/30" />
               <input placeholder="Search..." className="h-8 w-48 rounded-[var(--radius-md)] border border-black/[0.06] bg-white/60 pl-9 pr-3 text-[13px] text-[#1d1d1f] placeholder:text-[#1d1d1f]/30 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-[oklch(0.45_0.18_265_/_0.15)]" value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
-            <button onClick={() => navigate("/production")} className="flex h-8 items-center gap-1.5 rounded-[var(--radius-md)] border border-black/[0.06] bg-white/60 px-3 text-[12px] font-medium text-[#1d1d1f]/60 transition-all hover:bg-white hover:text-[#1d1d1f]">
+            <button onClick={() => navigate("/funnel-builder/production")} className="flex h-8 items-center gap-1.5 rounded-[var(--radius-md)] border border-black/[0.06] bg-white/60 px-3 text-[12px] font-medium text-[#1d1d1f]/60 transition-all hover:bg-white hover:text-[#1d1d1f]">
               <Globe className="h-3.5 w-3.5" /> Production
             </button>
             <button onClick={() => setImportDialogOpen(true)} className="flex h-8 items-center gap-1.5 rounded-[var(--radius-md)] border border-black/[0.06] bg-white/60 px-3 text-[12px] font-medium text-[#1d1d1f]/60 transition-all hover:bg-white hover:text-[#1d1d1f]">
@@ -102,7 +115,7 @@ export function DashboardPage() {
               <Plus className="h-3.5 w-3.5" /> New Funnel
             </motion.button>
             <div className="ml-1 h-4 w-px bg-black/[0.06]" />
-            <button onClick={async () => { await signOut(); navigate("/") }} className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-md)] text-[#1d1d1f]/30 transition-colors hover:bg-black/[0.04] hover:text-[#1d1d1f]/60" title="Sign out">
+            <button onClick={async () => { await signOut(); navigate("/auth") }} className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-md)] text-[#1d1d1f]/30 transition-colors hover:bg-black/[0.04] hover:text-[#1d1d1f]/60" title="Sign out">
               <LogOut className="h-3.5 w-3.5" />
             </button>
           </div>
@@ -136,7 +149,7 @@ export function DashboardPage() {
                   <motion.div key={project.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97 }} transition={{ delay: i * 0.04, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
                     <div
                       className="group relative cursor-pointer rounded-[var(--radius-lg)] border border-black/[0.06] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:border-black/[0.1]"
-                      onClick={() => navigate(`/design/${project.is_main ? "main" : project.slug}`)}
+                      onClick={() => navigate(`/funnel-builder/design/${project.is_main ? "main" : project.slug}`)}
                     >
                       {/* Live preview thumbnail */}
                       <div className="relative h-[148px] overflow-hidden rounded-t-[17px] border-b border-black/[0.04] bg-[#fafafa]">
@@ -181,8 +194,8 @@ export function DashboardPage() {
                               <AnimatePresence>
                                 {menuOpen === project.id && (
                                   <motion.div className="absolute right-0 top-8 z-40 w-48 overflow-hidden rounded-[var(--radius-lg)] border border-black/[0.08] bg-white p-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.12)]" initial={{ opacity: 0, scale: 0.95, y: -4 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: -4 }} transition={{ duration: 0.15 }} onClick={(e) => e.stopPropagation()}>
-                                    <CtxItem icon={Pencil} label="Edit" onClick={() => { setMenuOpen(null); navigate(`/design/${project.is_main ? "main" : project.slug}`) }} />
-                                    <CtxItem icon={Eye} label="Preview" onClick={(e) => { e.stopPropagation(); setMenuOpen(null); navigate(`/preview/${project.is_main ? "main" : project.slug}`) }} />
+                                    <CtxItem icon={Pencil} label="Edit" onClick={() => { setMenuOpen(null); navigate(`/funnel-builder/design/${project.is_main ? "main" : project.slug}`) }} />
+                                    <CtxItem icon={Eye} label="Preview" onClick={(e) => { e.stopPropagation(); setMenuOpen(null); navigate(`/funnel-builder/preview/${project.is_main ? "main" : project.slug}`) }} />
                                     {project.is_main ? (
                                       <CtxItem icon={Crown} label="Remove as Main" onClick={(e) => { e.stopPropagation(); handleRemoveMain(project.id) }} />
                                     ) : (
@@ -253,9 +266,17 @@ export function DashboardPage() {
           <DialogDescription>Upload a .json file from this builder or Claude Code</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <label className="flex h-36 cursor-pointer flex-col items-center justify-center rounded-[var(--radius-lg)] border-2 border-dashed border-white/[0.08] transition-all hover:border-white/[0.15] hover:bg-white/[0.03]">
-            <FileUp className="mb-2.5 h-6 w-6 text-white/20" />
-            <span className="text-[13px] font-medium text-white/30">Click to select a .json file</span>
+          <label
+            className={`flex h-36 cursor-pointer flex-col items-center justify-center rounded-[var(--radius-lg)] border-2 border-dashed transition-all ${importDragging ? "border-indigo-400/40 bg-indigo-500/[0.06]" : "border-white/[0.08] hover:border-white/[0.15] hover:bg-white/[0.03]"}`}
+            onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); importDragCounter.current++; setImportDragging(true) }}
+            onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); importDragCounter.current--; if (importDragCounter.current === 0) setImportDragging(false) }}
+            onDragOver={(e) => { e.preventDefault(); e.stopPropagation() }}
+            onDrop={handleImportDrop}
+          >
+            <FileUp className={`mb-2.5 h-6 w-6 ${importDragging ? "text-indigo-400/60" : "text-white/20"}`} />
+            <span className={`text-[13px] font-medium ${importDragging ? "text-indigo-300/60" : "text-white/30"}`}>
+              {importDragging ? "Drop .json file here" : "Drag & drop or click to select .json"}
+            </span>
             <input type="file" accept=".json" className="hidden" onChange={handleImport} />
           </label>
           <div className="flex justify-end">

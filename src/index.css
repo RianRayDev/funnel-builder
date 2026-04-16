@@ -106,10 +106,7 @@ body {
 
 [class*="Puck-"] { font-family: inherit !important; }
 
-[class*="PuckLayout-header"] {
-  background: var(--bg-card) !important;
-  border-bottom: 1px solid var(--border-default) !important;
-}
+/* Puck header is hidden via overrides prop — see DesignerPage.tsx */
 
 [class*="PuckLayout-leftSideBar"],
 [class*="PuckLayout-rightSideBar"] {
@@ -155,8 +152,3 @@ body {
   transition: all 0.15s ease !important;
 }
 
-/* Hide Puck's Publish button */
-[class*="PuckLayout-header"] button[class*="publish"],
-[class*="PuckLayout"] [class*="headerActions"] > button:last-child {
-  display: none !important;
-}

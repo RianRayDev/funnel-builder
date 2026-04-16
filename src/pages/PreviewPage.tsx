@@ -14,7 +14,7 @@ export function PreviewPage() {
   const [project] = useState(() => store.getBySlug(resolvedSlug))
 
   useEffect(() => {
-    if (!project) navigate("/dashboard", { replace: true })
+    if (!project) navigate("/funnel-builder", { replace: true })
   }, [project, navigate])
 
   if (!project) return null
@@ -31,7 +31,7 @@ export function PreviewPage() {
         transition={{ duration: 0.3 }}
       >
         <div className="flex items-center gap-2.5">
-          <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-[12px]" onClick={() => navigate("/dashboard")}>
+          <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-[12px]" onClick={() => navigate("/funnel-builder")}>
             <ArrowLeft className="h-3 w-3" /> Dashboard
           </Button>
           <div className="h-3.5 w-px bg-black/[0.06]" />
@@ -47,7 +47,7 @@ export function PreviewPage() {
             domain.com{project.is_main ? "" : `/${project.slug}`}
           </span>
         </div>
-        <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-[12px]" onClick={() => navigate(`/design/${designSlug}`)}>
+        <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-[12px]" onClick={() => navigate(`/funnel-builder/design/${designSlug}`)}>
           <Pencil className="h-3 w-3" /> Edit
         </Button>
       </motion.div>

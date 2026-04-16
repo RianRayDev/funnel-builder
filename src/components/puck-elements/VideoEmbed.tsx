@@ -13,15 +13,27 @@ interface VideoEmbedProps {
 function parseVideoUrl(url: string): { platform: string; id: string; embedUrl: string } | null {
   try {
     const u = new URL(url)
+    // YouTube — standard watch, short URLs, shorts, embed
     if (u.hostname.includes("youtube.com") || u.hostname.includes("youtu.be")) {
-      const id = u.hostname.includes("youtu.be") ? u.pathname.slice(1) : u.searchParams.get("v")
+      let id: string | null = null
+      if (u.hostname.includes("youtu.be")) {
+        id = u.pathname.slice(1)
+      } else if (u.pathname.startsWith("/shorts/")) {
+        id = u.pathname.split("/")[2]
+      } else if (u.pathname.startsWith("/embed/")) {
+        id = u.pathname.split("/")[2]
+      } else {
+        id = u.searchParams.get("v")
+      }
       if (id) return { platform: "youtube", id, embedUrl: `https://www.youtube-nocookie.com/embed/${id}?rel=0` }
     }
+    // Vimeo
     if (u.hostname.includes("vimeo.com")) {
-      const id = u.pathname.split("/").pop()
+      const segments = u.pathname.split("/").filter(Boolean)
+      const id = segments.find((s) => /^\d+$/.test(s))
       if (id) return { platform: "vimeo", id, embedUrl: `https://player.vimeo.com/video/${id}` }
     }
-  } catch { /* invalid */ }
+  } catch { /* invalid URL */ }
   return null
 }
 

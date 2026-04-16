@@ -31,14 +31,14 @@ export function ProductionPage() {
   }
 
   function handleMarkPublished(id: string) { store.update(id, { status: "published" }); window.location.reload() }
-  function handleUnpublish(id: string) { store.update(id, { status: "draft" }); window.location.reload() }
+  function handleUnpublish(id: string) { store.update(id, { status: "building" }); window.location.reload() }
 
   return (
     <div className="min-h-screen bg-[var(--bg-app)]">
       {/* Header */}
       <header className="sticky top-0 z-30 border-b border-[var(--border-default)]" style={{ background: "rgba(245,245,247,0.8)", backdropFilter: "blur(20px) saturate(150%)" }}>
         <div className="mx-auto flex h-14 max-w-[960px] items-center gap-3 px-6">
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate("/dashboard")}>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate("/funnel-builder")}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="h-4 w-px bg-[var(--border-default)]" />
@@ -111,7 +111,7 @@ export function ProductionPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="sm" onClick={() => navigate(`/preview/${p.is_main ? "main" : p.slug}`)}>
+                    <Button variant="ghost" size="sm" onClick={() => navigate(`/funnel-builder/preview/${p.is_main ? "main" : p.slug}`)}>
                       <ArrowUpRight className="h-3.5 w-3.5" /> Preview
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => handleCopy(p)}>
@@ -167,7 +167,7 @@ export function ProductionPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="sm" onClick={() => navigate(`/design/${p.is_main ? "main" : p.slug}`)}>
+                    <Button variant="ghost" size="sm" onClick={() => navigate(`/funnel-builder/design/${p.is_main ? "main" : p.slug}`)}>
                       Edit
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => handleExport(p)}>
