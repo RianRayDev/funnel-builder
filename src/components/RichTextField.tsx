@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { useEditor, EditorContent, type Editor } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import TextAlign from "@tiptap/extension-text-align"
@@ -132,6 +132,8 @@ export function RichTextField({
   minimal = false,
   placeholder = "Start typing...",
 }: RichTextFieldProps) {
+  const lastEmittedRef = useRef("")
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -157,12 +159,15 @@ export function RichTextField({
     onUpdate: ({ editor: e }) => {
       const html = sanitize(e.getHTML())
       const cleaned = html === "<p></p>" ? "" : html
+      lastEmittedRef.current = cleaned
       onChange(cleaned)
     },
   })
 
   useEffect(() => {
     if (!editor) return
+    // Skip if this change came from our own onUpdate — the editor is already in sync
+    if (value === lastEmittedRef.current) return
     const current = editor.getHTML()
     const sanitized = sanitize(value || "")
     if (current !== sanitized && sanitized !== "<p></p>") {

@@ -121,6 +121,8 @@ export function DesignerPage() {
             {saveState === "saving" && <span className="flex items-center gap-1 text-[#1d1d1f]/40"><Loader2 className="h-3 w-3 animate-spin" /> Saving</span>}
             {saveState === "unsaved" && <span className="text-amber-500">Unsaved</span>}
           </span>
+          <div className="ml-1 h-4 w-px bg-black/[0.06]" />
+          <div id="puck-nav-undo-slot" />
         </div>
         <div className="flex items-center gap-1.5">
           {/* Status toggle */}

@@ -8,7 +8,7 @@
  * Uses usePuck() to read selection state and dispatch data updates.
  */
 import { useCallback, useEffect, useRef, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { createPortal } from "react-dom"
 import { Undo2 } from "lucide-react"
 import { usePuck } from "@measured/puck"
 import { FloatingToolbar, TEXT_COMPONENTS } from "@/components/FloatingToolbar"
@@ -89,7 +89,12 @@ export function CanvasOverlay({ children }: { children: React.ReactNode }) {
   const { selectedItem, dispatch, appState, history } = usePuck()
   const [selectedRect, setSelectedRect] = useState<DOMRect | null>(null)
   const [inlineEdit, setInlineEdit] = useState<InlineEditState | null>(null)
+  const [undoSlot, setUndoSlot] = useState<HTMLElement | null>(null)
   const canvasRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    setUndoSlot(document.getElementById("puck-nav-undo-slot"))
+  }, [])
 
   const selectedType = selectedItem?.type || null
   const selectedId = (selectedItem as any)?.props?.id || null
@@ -254,26 +259,20 @@ export function CanvasOverlay({ children }: { children: React.ReactNode }) {
     <div ref={canvasRef} className="relative">
       {children}
 
-      {/* Undo button — top-left of canvas */}
-      <AnimatePresence>
-        <motion.div
-          initial={{ opacity: 0, y: -4 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -4 }}
-          transition={{ duration: 0.15 }}
-          className="absolute top-3 left-3 z-[9990]"
+      {/* Undo button — portaled into nav slot */}
+      {undoSlot && createPortal(
+        <button
+          type="button"
+          title="Undo"
+          disabled={!history.hasPast}
+          onClick={() => history.back()}
+          className="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-[12px] font-medium text-[#1d1d1f]/60 transition-colors hover:bg-black/[0.04] hover:text-[#1d1d1f] disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          <button
-            type="button"
-            title="Undo"
-            disabled={!history.hasPast}
-            onClick={() => history.back()}
-            className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-800/95 shadow-xl backdrop-blur-sm text-white/70 transition-all hover:bg-slate-700/95 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            <Undo2 className="h-3.5 w-3.5" />
-          </button>
-        </motion.div>
-      </AnimatePresence>
+          <Undo2 className="h-3.5 w-3.5" />
+          Undo
+        </button>,
+        undoSlot,
+      )}
 
       {/* Floating toolbar — only when NOT inline editing */}
       {!inlineEdit && selectedType && (
