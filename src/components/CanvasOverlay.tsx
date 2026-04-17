@@ -45,6 +45,22 @@ function findComponentById(data: Data, id: string): ComponentData | null {
   return null
 }
 
+/** Find a component's index and zone compound key for Puck dispatch actions */
+function findComponentLocation(data: Data, id: string): { index: number; zone: string } | null {
+  const ROOT_ZONE = "root:default-zone"
+  for (let i = 0; i < (data.content || []).length; i++) {
+    if (data.content[i].props?.id === id) return { index: i, zone: ROOT_ZONE }
+  }
+  if ((data as any).zones) {
+    for (const [zoneKey, zoneItems] of Object.entries((data as any).zones) as [string, any[]][]) {
+      for (let i = 0; i < zoneItems.length; i++) {
+        if (zoneItems[i].props?.id === id) return { index: i, zone: zoneKey }
+      }
+    }
+  }
+  return null
+}
+
 /** Update a component's prop in the data tree (deep clone first) */
 function updateComponentProp(data: Data, componentId: string, propName: string, value: string): Data {
   const cloned = JSON.parse(JSON.stringify(data)) as Data
@@ -219,14 +235,18 @@ export function CanvasOverlay({ children }: { children: React.ReactNode }) {
   // Duplicate via Puck dispatch
   const handleDuplicate = useCallback(() => {
     if (!selectedId) return
-    dispatch({ type: "duplicate", sourceId: selectedId } as any)
-  }, [selectedId, dispatch])
+    const loc = findComponentLocation(appState.data as Data, selectedId)
+    if (!loc) return
+    dispatch({ type: "duplicate", sourceIndex: loc.index, sourceZone: loc.zone } as any)
+  }, [selectedId, appState.data, dispatch])
 
   // Delete via Puck dispatch
   const handleDelete = useCallback(() => {
     if (!selectedId) return
-    dispatch({ type: "remove", id: selectedId } as any)
-  }, [selectedId, dispatch])
+    const loc = findComponentLocation(appState.data as Data, selectedId)
+    if (!loc) return
+    dispatch({ type: "remove", index: loc.index, zone: loc.zone } as any)
+  }, [selectedId, appState.data, dispatch])
 
   return (
     <div ref={canvasRef} className="relative">
