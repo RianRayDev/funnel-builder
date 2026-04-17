@@ -171,7 +171,7 @@ export const Banner: ComponentConfig<BannerProps> = {
       weight: "font-bold",
     },
   },
-  render: ({ font, heading, subheading, buttonLabel, buttonLink, buttonVariant, backgroundImage, backgroundGradient, overlayOpacity, minHeight, alignment, typography, ...legacy }: any) => {
+  render: ({ font = "font-sans", heading = "", subheading = "", buttonLabel = "Get Started Free", buttonLink = "#", buttonVariant = "primary", backgroundImage = "", backgroundGradient = "bg-gradient-to-br from-indigo-600 to-violet-700", overlayOpacity = "bg-black/0", minHeight = "min-h-[450px]", alignment = "items-center text-center", typography, ...legacy }: any) => {
     const typo = typography || {
       ...defaultTypography,
       font: legacy.font || font || defaultTypography.font,

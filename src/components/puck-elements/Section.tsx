@@ -147,7 +147,7 @@ export const Section: ComponentConfig<SectionProps> = {
     align: "items-stretch",
     gap: "",
   },
-  render: ({ backgroundColor, paddingY, maxWidth, direction, distribute, align, gap, puck }) => {
+  render: ({ backgroundColor = "bg-white", paddingY = "py-16", maxWidth = "max-w-6xl", direction = "flex-col", distribute = "justify-start", align = "items-stretch", gap = "", puck }) => {
     const dark = isDarkBg(backgroundColor)
     return (
       <section className={cn("w-full px-6", backgroundColor, paddingY, dark && "text-white")}>

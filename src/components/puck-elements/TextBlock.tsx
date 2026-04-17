@@ -45,7 +45,7 @@ export const TextBlock: ComponentConfig<TextBlockProps> = {
       lineHeight: "leading-relaxed",
     },
   },
-  render: ({ font, content, typography, ...legacy }: any) => {
+  render: ({ font = "font-sans", content = "", typography, ...legacy }: any) => {
     const typo = typography || {
       ...defaultTypography,
       font: legacy.font || font || defaultTypography.font,

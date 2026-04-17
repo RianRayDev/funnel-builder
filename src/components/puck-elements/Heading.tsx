@@ -84,7 +84,7 @@ export const Heading: ComponentConfig<HeadingProps> = {
       letterSpacing: "tracking-tight",
     },
   },
-  render: ({ font, text, level, typography, ...legacy }: any) => {
+  render: ({ font = "font-sans", text = "", level = "h2", typography, ...legacy }: any) => {
     // Level determines the visual size — this is the semantic mapping
     const levelSize: Record<string, { size: string; weight: string; leading: string }> = {
       h1: { size: "text-5xl", weight: "font-bold", leading: "leading-tight" },

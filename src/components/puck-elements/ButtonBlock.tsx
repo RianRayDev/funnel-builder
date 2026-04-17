@@ -154,7 +154,7 @@ export const ButtonBlock: ComponentConfig<ButtonBlockProps> = {
     alignment: "justify-start",
     borderRadius: "rounded-xl",
   },
-  render: ({ label, link, variant, size, fullWidth, alignment, borderRadius }) => (
+  render: ({ label = "Get Started", link = "#", variant = "primary", size = "md", fullWidth = false, alignment = "justify-start", borderRadius = "rounded-xl" }) => (
     <div className={cn("flex", alignment)}>
       <a
         href={link}

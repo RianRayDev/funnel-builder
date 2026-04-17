@@ -37,5 +37,5 @@ export const Spacer: ComponentConfig<SpacerProps> = {
   defaultProps: {
     height: "h-8",
   },
-  render: ({ height }) => <div className={height} />,
+  render: ({ height = "h-8" }) => <div className={height} />,
 }

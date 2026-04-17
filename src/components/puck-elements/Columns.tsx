@@ -62,7 +62,7 @@ export const Columns: ComponentConfig<ColumnsProps> = {
     columns: "grid-cols-2",
     gap: "gap-6",
   },
-  render: ({ columns, gap, puck }) => (
+  render: ({ columns = "grid-cols-2", gap = "gap-6", puck }) => (
     <div className={cn("grid", columns, gap, "max-sm:grid-cols-1")}>
       {Array.from({ length: parseInt(columns.replace("grid-cols-", "")) }).map((_, i) => (
         <div key={i}>

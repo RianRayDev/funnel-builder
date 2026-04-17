@@ -67,7 +67,7 @@ export const Divider: ComponentConfig<DividerProps> = {
     style: "border-solid",
     color: "border-border",
   },
-  render: ({ style, color }) => (
+  render: ({ style = "border-solid", color = "border-border" }) => (
     <hr className={cn("border-t", style, color)} />
   ),
 }

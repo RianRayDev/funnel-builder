@@ -110,7 +110,7 @@ export const FormBlock: ComponentConfig<FormBlockProps> = {
     layout: "stacked",
     actionUrl: "",
   },
-  render: ({ fields: formFields, submitLabel, submitStyle, layout, actionUrl }) => {
+  render: ({ fields: formFields, submitLabel = "Get Started", submitStyle = "primary", layout = "stacked", actionUrl = "" }) => {
     const buttonClasses = cn(
       "flex items-center justify-center font-semibold transition-all duration-200 active:scale-[0.98]",
       submitStyle === "primary" && "h-11 rounded-xl bg-primary text-primary-foreground px-6 shadow-sm hover:brightness-110",
