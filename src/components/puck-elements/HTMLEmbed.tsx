@@ -41,8 +41,8 @@ function IsolatedEmbed({ html }: { html: string }) {
 export const HTMLEmbed: ComponentConfig<HTMLEmbedProps> = {
   label: "HTML / Embed",
   fields: {
-    code: { type: "textarea", label: "HTML Code" },
     label: { type: "text", label: "Label (editor only)" },
+    code: { type: "textarea", label: "HTML Code" },
   },
   defaultProps: {
     code: "",

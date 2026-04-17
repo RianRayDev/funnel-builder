@@ -1,9 +1,11 @@
 import type { ComponentConfig } from "@measured/puck"
 import { cn } from "@/lib/utils"
 import { RichTextField, RichTextContent } from "@/components/RichTextField"
+import { TypographyPanel, defaultTypography, type TypographyValue } from "@/components/TypographyPanel"
 import { FontPicker } from "@/lib/fonts"
 
 interface BannerProps {
+  font: string
   heading: string
   subheading: string
   buttonLabel: string
@@ -14,7 +16,7 @@ interface BannerProps {
   overlayOpacity: string
   minHeight: string
   alignment: string
-  font: string
+  typography: TypographyValue
 }
 
 const gradientOptions = [
@@ -37,6 +39,11 @@ const btnClasses: Record<string, string> = {
 export const Banner: ComponentConfig<BannerProps> = {
   label: "Banner",
   fields: {
+    font: {
+      type: "custom",
+      label: "Font",
+      render: ({ value, onChange }) => <FontPicker value={value || "font-sans"} onChange={onChange} />,
+    },
     heading: {
       type: "custom", label: "Heading",
       render: ({ value, onChange }) => (
@@ -47,6 +54,20 @@ export const Banner: ComponentConfig<BannerProps> = {
       type: "custom", label: "Subheading",
       render: ({ value, onChange }) => (
         <RichTextField value={value} onChange={onChange} showAlign placeholder="Supporting text..." />
+      ),
+    },
+    typography: {
+      type: "custom",
+      label: "Style",
+      render: ({ value, onChange }) => (
+        <TypographyPanel
+          value={value || defaultTypography}
+          onChange={onChange}
+          showFont={false}
+          showAlignment={false}
+          showSize={false}
+          showLineHeight={false}
+        />
       ),
     },
     buttonLabel: { type: "text", label: "Button Text" },
@@ -132,13 +153,9 @@ export const Banner: ComponentConfig<BannerProps> = {
         </div>
       ),
     },
-    font: {
-      type: "custom",
-      label: "Font",
-      render: ({ value, onChange }) => <FontPicker value={value} onChange={onChange} />,
-    },
   },
   defaultProps: {
+    font: "font-sans",
     heading: "Build Something People Love",
     subheading: "The all-in-one platform to create, launch, and grow your online presence.",
     buttonLabel: "Get Started Free",
@@ -149,31 +166,40 @@ export const Banner: ComponentConfig<BannerProps> = {
     overlayOpacity: "bg-black/0",
     minHeight: "min-h-[450px]",
     alignment: "items-center text-center",
-    font: "font-sans",
+    typography: {
+      ...defaultTypography,
+      weight: "font-bold",
+    },
   },
-  render: ({ heading, subheading, buttonLabel, buttonLink, buttonVariant, backgroundImage, backgroundGradient, overlayOpacity, minHeight, alignment, font }) => {
+  render: ({ font, heading, subheading, buttonLabel, buttonLink, buttonVariant, backgroundImage, backgroundGradient, overlayOpacity, minHeight, alignment, typography, ...legacy }: any) => {
+    const typo = typography || {
+      ...defaultTypography,
+      font: legacy.font || font || defaultTypography.font,
+      weight: "font-bold",
+    }
     const hasImage = !!backgroundImage
     const isLightGradient = backgroundGradient.includes("slate-50") || backgroundGradient.includes("white")
     const textColor = isLightGradient && !hasImage ? "text-slate-900" : "text-white"
 
     return (
       <div className={cn("relative flex w-full flex-col justify-center overflow-hidden px-6 py-16", minHeight, alignment, !hasImage && backgroundGradient)}>
-        {/* Background image */}
         {hasImage && (
           <img src={backgroundImage} alt="" className="absolute inset-0 h-full w-full object-cover" />
         )}
-        {/* Gradient overlay when image is present */}
         {hasImage && backgroundGradient && (
           <div className={cn("absolute inset-0 opacity-80", backgroundGradient)} />
         )}
-        {/* Dark overlay */}
         <div className={cn("absolute inset-0", overlayOpacity)} />
 
-        {/* Content */}
-        <div className={cn("relative z-10 mx-auto w-full max-w-3xl", font)}>
+        <div className={cn("relative z-10 mx-auto w-full max-w-3xl", font || typo.font, typo.transform)}>
           <RichTextContent
             html={heading}
-            className={cn("mb-4 text-4xl font-bold tracking-tight sm:text-5xl [&_p]:mb-0 [&_a]:underline [&_mark]:bg-yellow-300/30 [&_mark]:px-1 [&_mark]:rounded-sm", textColor)}
+            className={cn(
+              "mb-4 text-4xl tracking-tight sm:text-5xl [&_p]:mb-0 [&_a]:underline",
+              typo.weight,
+              typo.letterSpacing,
+              textColor,
+            )}
           />
           <RichTextContent
             html={subheading}

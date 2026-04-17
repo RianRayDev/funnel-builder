@@ -26,24 +26,77 @@ export const FormBlock: ComponentConfig<FormBlockProps> = {
           ],
         },
         placeholder: { type: "text", label: "Placeholder" },
-        required: { type: "radio", label: "Required", options: [{ value: true, label: "Yes" }, { value: false, label: "No" }] },
+        required: {
+          type: "custom",
+          label: "Required",
+          render: ({ value, onChange }) => (
+            <div className="flex items-center justify-between">
+              <label className="text-[9px] font-semibold uppercase tracking-wider text-gray-400">Required</label>
+              <button
+                type="button"
+                onClick={() => onChange(!value)}
+                className={cn(
+                  "relative h-5 w-9 rounded-full transition-colors",
+                  value ? "bg-blue-500" : "bg-gray-200",
+                )}
+              >
+                <span
+                  className={cn(
+                    "absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform",
+                    value && "translate-x-4",
+                  )}
+                />
+              </button>
+            </div>
+          ),
+        },
       },
     },
     submitLabel: { type: "text", label: "Button Text" },
     submitStyle: {
-      type: "select", label: "Button Style",
-      options: [
-        { value: "primary", label: "Primary" },
-        { value: "large", label: "Large" },
-        { value: "outline", label: "Outline" },
-      ],
+      type: "custom",
+      label: "Button Style",
+      render: ({ value, onChange }) => (
+        <div className="space-y-1">
+          <label className="text-[9px] font-semibold uppercase tracking-wider text-gray-400">Button Style</label>
+          <select
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="w-full rounded-md border border-gray-200 bg-white px-1.5 py-1 text-[11px] font-medium text-gray-700 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/30"
+          >
+            <option value="primary">Primary</option>
+            <option value="large">Large</option>
+            <option value="outline">Outline</option>
+          </select>
+        </div>
+      ),
     },
     layout: {
-      type: "select", label: "Layout",
-      options: [
-        { value: "stacked", label: "Stacked" },
-        { value: "inline", label: "Inline (Email + Button)" },
-      ],
+      type: "custom",
+      label: "Layout",
+      render: ({ value, onChange }) => (
+        <div className="space-y-1">
+          <label className="text-[9px] font-semibold uppercase tracking-wider text-gray-400">Layout</label>
+          <div className="flex gap-1 rounded-lg bg-gray-100 p-0.5">
+            {[
+              { v: "stacked", l: "Stacked" },
+              { v: "inline", l: "Inline" },
+            ].map((opt) => (
+              <button
+                key={opt.v}
+                type="button"
+                onClick={() => onChange(opt.v)}
+                className={cn(
+                  "flex-1 rounded-md py-1 text-center text-[11px] font-medium transition-all",
+                  value === opt.v ? "bg-white shadow-sm text-gray-700" : "text-gray-400",
+                )}
+              >
+                {opt.l}
+              </button>
+            ))}
+          </div>
+        </div>
+      ),
     },
     actionUrl: { type: "text", label: "Form Action URL (optional)" },
   },

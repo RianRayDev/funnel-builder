@@ -1,15 +1,16 @@
 import { useEffect } from "react"
 import { useEditor, EditorContent, type Editor } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
-import Underline from "@tiptap/extension-underline"
-import Highlight from "@tiptap/extension-highlight"
 import TextAlign from "@tiptap/extension-text-align"
 import Link from "@tiptap/extension-link"
 import DOMPurify from "dompurify"
 import { cn } from "@/lib/utils"
+import { FancyUnderline } from "@/lib/tiptap-extensions/fancy-underline"
+import { FancyHighlight } from "@/lib/tiptap-extensions/fancy-highlight"
+import { UnderlinePicker } from "@/components/UnderlinePicker"
+import { HighlightPicker } from "@/components/HighlightPicker"
 import {
-  Bold, Italic, Underline as UnderlineIcon, Highlighter,
-  Link2, AlignLeft, AlignCenter, AlignRight, RemoveFormatting,
+  Bold, Italic, Link2, AlignLeft, AlignCenter, AlignRight, RemoveFormatting,
 } from "lucide-react"
 
 interface RichTextFieldProps {
@@ -28,7 +29,14 @@ interface RichTextFieldProps {
 export function sanitize(html: string): string {
   return DOMPurify.sanitize(html, {
     ALLOWED_TAGS: ["p", "br", "strong", "em", "u", "mark", "a", "span", "h1", "h2", "h3", "h4", "h5", "h6", "ul", "ol", "li"],
-    ALLOWED_ATTR: ["href", "target", "rel", "style", "class"],
+    ALLOWED_ATTR: [
+      "href", "target", "rel", "style", "class",
+      // Fancy underline data attrs
+      "data-underline", "data-underline-color", "data-underline-thickness",
+      "data-underline-offset", "data-underline-animation",
+      // Fancy highlight data attrs
+      "data-highlight-color", "data-highlight-radius", "data-highlight-padding", "data-highlight-style",
+    ],
   })
 }
 
@@ -79,12 +87,8 @@ function Toolbar({ editor, showAlign, minimal }: { editor: Editor; showAlign?: b
 
       {!minimal && (
         <>
-          <ToolbarButton active={editor.isActive("underline")} onClick={() => editor.chain().focus().toggleUnderline().run()} title="Underline">
-            <UnderlineIcon className="h-3 w-3" />
-          </ToolbarButton>
-          <ToolbarButton active={editor.isActive("highlight")} onClick={() => editor.chain().focus().toggleHighlight().run()} title="Highlight">
-            <Highlighter className="h-3 w-3" />
-          </ToolbarButton>
+          <UnderlinePicker editor={editor} />
+          <HighlightPicker editor={editor} />
 
           <div className="mx-0.5 h-4 w-px bg-gray-100" />
 
@@ -139,8 +143,8 @@ export function RichTextField({
         blockquote: false,
         horizontalRule: false,
       }),
-      Underline,
-      Highlight.configure({ multicolor: false }),
+      FancyUnderline,
+      FancyHighlight,
       TextAlign.configure({ types: ["paragraph"] }),
       Link.configure({ openOnClick: false, HTMLAttributes: { target: "_blank", rel: "noopener noreferrer" } }),
     ],

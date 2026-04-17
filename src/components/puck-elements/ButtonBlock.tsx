@@ -46,15 +46,23 @@ export const ButtonBlock: ComponentConfig<ButtonBlockProps> = {
       type: "custom",
       label: "Style",
       render: ({ value, onChange }) => (
-        <div className="grid grid-cols-4 gap-1.5">
-          {variantOptions.map((opt) => (
-            <button key={opt.value} type="button" onClick={() => onChange(opt.value)} title={opt.label}
-              className={cn("flex h-8 items-center justify-center rounded-lg text-[10px] font-semibold transition-all",
-                value === opt.value ? "ring-2 ring-blue-500 ring-offset-1" : "hover:opacity-80")}
-              style={{ backgroundColor: opt.bg, color: opt.text, border: opt.bg === "transparent" ? "2px solid #94a3b8" : undefined }}>
-              {opt.label}
-            </button>
-          ))}
+        <div className="space-y-1">
+          <label className="text-[9px] font-semibold uppercase tracking-wider text-gray-400">Style</label>
+          <div className="flex items-center gap-1.5">
+            {variantOptions.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                title={opt.label}
+                onClick={() => onChange(opt.value)}
+                className={cn(
+                  "h-6 w-6 rounded-full border-2 transition-all",
+                  value === opt.value ? "border-blue-500 scale-110" : "border-gray-200 hover:border-gray-300",
+                )}
+                style={{ backgroundColor: opt.bg === "transparent" ? "#f8fafc" : opt.bg }}
+              />
+            ))}
+          </div>
         </div>
       ),
     },
@@ -62,13 +70,17 @@ export const ButtonBlock: ComponentConfig<ButtonBlockProps> = {
       type: "custom",
       label: "Size",
       render: ({ value, onChange }) => (
-        <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
-          {[{ v: "sm", l: "S" }, { v: "md", l: "M" }, { v: "lg", l: "L" }].map((opt) => (
-            <button key={opt.v} type="button" onClick={() => onChange(opt.v)}
-              className={cn("flex-1 rounded-md py-1.5 text-center text-xs font-medium transition-all", value === opt.v ? "bg-white shadow-sm" : "text-gray-400")}>
-              {opt.l}
-            </button>
-          ))}
+        <div className="space-y-1">
+          <label className="text-[9px] font-semibold uppercase tracking-wider text-gray-400">Size</label>
+          <select
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="w-full rounded-md border border-gray-200 bg-white px-1.5 py-1 text-[11px] font-medium text-gray-700 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/30"
+          >
+            <option value="sm">Small</option>
+            <option value="md">Medium</option>
+            <option value="lg">Large</option>
+          </select>
         </div>
       ),
     },
@@ -76,36 +88,59 @@ export const ButtonBlock: ComponentConfig<ButtonBlockProps> = {
       type: "custom",
       label: "Corners",
       render: ({ value, onChange }) => (
-        <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
-          {[
-            { v: "rounded-lg", l: "Slight" },
-            { v: "rounded-xl", l: "Round" },
-            { v: "rounded-full", l: "Pill" },
-          ].map((opt) => (
-            <button key={opt.v} type="button" onClick={() => onChange(opt.v)}
-              className={cn("flex-1 rounded-md py-1.5 text-center text-xs font-medium transition-all", value === opt.v ? "bg-white shadow-sm" : "text-gray-400")}>
-              {opt.l}
-            </button>
-          ))}
+        <div className="space-y-1">
+          <label className="text-[9px] font-semibold uppercase tracking-wider text-gray-400">Corners</label>
+          <select
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="w-full rounded-md border border-gray-200 bg-white px-1.5 py-1 text-[11px] font-medium text-gray-700 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/30"
+          >
+            <option value="rounded-lg">Slight</option>
+            <option value="rounded-xl">Round</option>
+            <option value="rounded-full">Pill</option>
+          </select>
         </div>
       ),
     },
-    fullWidth: { type: "radio", label: "Full Width", options: [{ value: true, label: "Yes" }, { value: false, label: "No" }] },
+    fullWidth: {
+      type: "custom",
+      label: "Full Width",
+      render: ({ value, onChange }) => (
+        <div className="flex items-center justify-between">
+          <label className="text-[9px] font-semibold uppercase tracking-wider text-gray-400">Full Width</label>
+          <button
+            type="button"
+            onClick={() => onChange(!value)}
+            className={cn(
+              "relative h-5 w-9 rounded-full transition-colors",
+              value ? "bg-blue-500" : "bg-gray-200",
+            )}
+          >
+            <span
+              className={cn(
+                "absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform",
+                value && "translate-x-4",
+              )}
+            />
+          </button>
+        </div>
+      ),
+    },
     alignment: {
       type: "custom",
       label: "Alignment",
       render: ({ value, onChange }) => (
-        <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
-          {[
-            { v: "justify-start", l: "Left" },
-            { v: "justify-center", l: "Center" },
-            { v: "justify-end", l: "Right" },
-          ].map((opt) => (
-            <button key={opt.v} type="button" onClick={() => onChange(opt.v)}
-              className={cn("flex-1 rounded-md py-1.5 text-center text-xs font-medium transition-all", value === opt.v ? "bg-white shadow-sm" : "text-gray-400")}>
-              {opt.l}
-            </button>
-          ))}
+        <div className="space-y-1">
+          <label className="text-[9px] font-semibold uppercase tracking-wider text-gray-400">Alignment</label>
+          <select
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="w-full rounded-md border border-gray-200 bg-white px-1.5 py-1 text-[11px] font-medium text-gray-700 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/30"
+          >
+            <option value="justify-start">Left</option>
+            <option value="justify-center">Center</option>
+            <option value="justify-end">Right</option>
+          </select>
         </div>
       ),
     },

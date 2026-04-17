@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { puckConfig } from "@/lib/puck-config"
 import { store } from "@/lib/store"
 import { cn } from "@/lib/utils"
+import { CanvasOverlay } from "@/components/CanvasOverlay"
 import type { Data } from "@measured/puck"
 import type { Project } from "@/types"
 
@@ -26,6 +27,7 @@ export function DesignerPage() {
   const [project, setProject] = useState(() => store.getBySlug(resolvedSlug))
   const [saveState, setSaveState] = useState<SaveState>("saved")
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const latestData = useRef<Data | null>(null)
 
   useEffect(() => {
     if (!project) navigate("/funnel-builder", { replace: true })
@@ -41,6 +43,7 @@ export function DesignerPage() {
   const handleChange = useCallback(
     (data: Data) => {
       if (!project) return
+      latestData.current = data
       setSaveState("unsaved")
       if (saveTimer.current) clearTimeout(saveTimer.current)
       saveTimer.current = setTimeout(() => {
@@ -53,10 +56,18 @@ export function DesignerPage() {
     [project],
   )
 
-  function handleSave() {
+  /** Force-save the latest data immediately (cancels debounce) */
+  function flushSave() {
     if (!project) return
-    store.update(project.id, { content: project.content })
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    const data = latestData.current || project.content
+    store.update(project.id, { content: data })
+    setProject(store.get(project.id))
     setSaveState("saved")
+  }
+
+  function handleSave() {
+    flushSave()
   }
 
   function handleExportJSON() {
@@ -134,7 +145,7 @@ export function DesignerPage() {
           <span className="rounded-md bg-black/[0.04] px-2 py-0.5 font-mono text-[10px] text-[#1d1d1f]/40">
             /{project.is_main ? "" : project.slug}
           </span>
-          <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-[12px]" onClick={() => navigate(`/funnel-builder/preview/${previewSlug}`)}>
+          <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-[12px]" onClick={() => { flushSave(); navigate(`/funnel-builder/preview/${previewSlug}`) }}>
             <Eye className="h-3.5 w-3.5" /> Preview
           </Button>
           <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-[12px]" onClick={handleExportJSON}>
@@ -153,9 +164,12 @@ export function DesignerPage() {
           data={project.content}
           onChange={handleChange}
           onPublish={handleSave}
+          iframe={{ enabled: false }}
           overrides={{
             header: () => <div style={{ display: "none" }} />,
             headerActions: () => <div style={{ display: "none" }} />,
+            actionBar: () => <div style={{ display: "none" }} />,
+            preview: ({ children }) => <CanvasOverlay>{children}</CanvasOverlay>,
           }}
         />
       </div>

@@ -2,40 +2,33 @@ import type { ComponentConfig } from "@measured/puck"
 import { cn } from "@/lib/utils"
 import { createElement } from "react"
 import { RichTextField, sanitize } from "@/components/RichTextField"
+import { TypographyPanel, defaultTypography, type TypographyValue } from "@/components/TypographyPanel"
 import { FontPicker } from "@/lib/fonts"
 
 interface HeadingProps {
+  font: string
   text: string
   level: string
-  alignment: string
-  color: string
-  font: string
+  typography: TypographyValue
 }
 
-const levelStyles: Record<string, { className: string; preview: string }> = {
-  h1: { className: "text-5xl font-bold tracking-tight", preview: "H1 — Page Title" },
-  h2: { className: "text-4xl font-bold tracking-tight", preview: "H2 — Section" },
-  h3: { className: "text-3xl font-semibold", preview: "H3 — Subsection" },
-  h4: { className: "text-2xl font-semibold", preview: "H4 — Card Title" },
-  h5: { className: "text-xl font-medium", preview: "H5 — Label" },
-  h6: { className: "text-lg font-medium", preview: "H6 — Small" },
-}
-
-const colorOptions = [
-  { value: "text-inherit", label: "Auto", swatch: "inherit" },
-  { value: "text-slate-900", label: "Dark", swatch: "#0f172a" },
-  { value: "text-white", label: "White", swatch: "#ffffff" },
-  { value: "text-indigo-600", label: "Indigo", swatch: "#4f46e5" },
-  { value: "text-blue-600", label: "Blue", swatch: "#2563eb" },
-  { value: "text-emerald-600", label: "Green", swatch: "#059669" },
-  { value: "text-rose-600", label: "Rose", swatch: "#e11d48" },
-  { value: "text-amber-600", label: "Amber", swatch: "#d97706" },
-  { value: "text-slate-500", label: "Muted", swatch: "#64748b" },
+const levelOptions = [
+  { value: "h1", label: "H1 — Page Title" },
+  { value: "h2", label: "H2 — Section" },
+  { value: "h3", label: "H3 — Subsection" },
+  { value: "h4", label: "H4 — Card Title" },
+  { value: "h5", label: "H5 — Label" },
+  { value: "h6", label: "H6 — Small" },
 ]
 
 export const Heading: ComponentConfig<HeadingProps> = {
   label: "Heading",
   fields: {
+    font: {
+      type: "custom",
+      label: "Font",
+      render: ({ value, onChange }) => <FontPicker value={value || "font-sans"} onChange={onChange} />,
+    },
     text: {
       type: "custom",
       label: "Text",
@@ -48,87 +41,87 @@ export const Heading: ComponentConfig<HeadingProps> = {
       label: "Heading Level",
       render: ({ value, onChange }) => (
         <div className="space-y-1">
-          {Object.entries(levelStyles).map(([key, style]) => (
+          {levelOptions.map((opt) => (
             <button
-              key={key}
+              key={opt.value}
               type="button"
-              onClick={() => onChange(key)}
+              onClick={() => onChange(opt.value)}
               className={cn(
                 "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-all",
-                value === key ? "bg-blue-50 border border-blue-200" : "hover:bg-gray-50 border border-transparent",
+                value === opt.value ? "bg-blue-50 border border-blue-200" : "hover:bg-gray-50 border border-transparent",
               )}
             >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-gray-100 text-xs font-bold text-gray-500 uppercase">{key}</span>
-              <span className="text-xs text-gray-600">{style.preview}</span>
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-gray-100 text-xs font-bold text-gray-500 uppercase">{opt.value}</span>
+              <span className="text-xs text-gray-600">{opt.label}</span>
             </button>
           ))}
         </div>
       ),
     },
-    alignment: {
+    typography: {
       type: "custom",
-      label: "Alignment",
+      label: "Style",
       render: ({ value, onChange }) => (
-        <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
-          {[
-            { v: "text-left", icon: "☰", label: "Left" },
-            { v: "text-center", icon: "≡", label: "Center" },
-            { v: "text-right", icon: "☰", label: "Right" },
-          ].map((opt) => (
-            <button key={opt.v} type="button" onClick={() => onChange(opt.v)} title={opt.label}
-              className={cn("flex-1 rounded-md py-1.5 text-center text-sm transition-all", value === opt.v ? "bg-white shadow-sm font-medium" : "text-gray-400 hover:text-gray-600")}>
-              {opt.icon}
-            </button>
-          ))}
-        </div>
+        <TypographyPanel
+          value={value || defaultTypography}
+          onChange={onChange}
+          showFont={false}
+          showSize={false}
+          showLineHeight={false}
+        />
       ),
-    },
-    color: {
-      type: "custom",
-      label: "Color",
-      render: ({ value, onChange }) => (
-        <div className="flex flex-wrap gap-1.5">
-          {colorOptions.map((opt) => (
-            <button key={opt.value} type="button" title={opt.label} onClick={() => onChange(opt.value)}
-              className={cn("h-6 w-6 rounded-full border-2 transition-all",
-                value === opt.value ? "border-blue-500 scale-110 shadow-sm" : "border-gray-200 hover:border-gray-400")}
-              style={{ backgroundColor: opt.swatch === "inherit" ? "transparent" : opt.swatch,
-                backgroundImage: opt.swatch === "inherit" ? "linear-gradient(135deg, #e5e7eb 50%, #4f46e5 50%)" : undefined }}
-            />
-          ))}
-        </div>
-      ),
-    },
-    font: {
-      type: "custom",
-      label: "Font",
-      render: ({ value, onChange }) => <FontPicker value={value} onChange={onChange} />,
     },
   },
   defaultProps: {
+    font: "font-sans",
     text: "Your Headline Here",
     level: "h2",
-    alignment: "text-left",
-    color: "text-inherit",
-    font: "font-sans",
+    typography: {
+      ...defaultTypography,
+      weight: "font-bold",
+      size: "text-4xl",
+      lineHeight: "leading-tight",
+      letterSpacing: "tracking-tight",
+    },
   },
-  render: ({ text, level, alignment, color, font }) => {
+  render: ({ font, text, level, typography, ...legacy }: any) => {
+    // Level determines the visual size — this is the semantic mapping
+    const levelSize: Record<string, { size: string; weight: string; leading: string }> = {
+      h1: { size: "text-5xl", weight: "font-bold", leading: "leading-tight" },
+      h2: { size: "text-4xl", weight: "font-bold", leading: "leading-tight" },
+      h3: { size: "text-3xl", weight: "font-semibold", leading: "leading-snug" },
+      h4: { size: "text-2xl", weight: "font-semibold", leading: "leading-snug" },
+      h5: { size: "text-xl", weight: "font-medium", leading: "leading-normal" },
+      h6: { size: "text-lg", weight: "font-medium", leading: "leading-normal" },
+    }
+    const defaults = levelSize[level] || levelSize.h2
+
+    const typo = typography || {
+      ...defaultTypography,
+      font: legacy.font || font || defaultTypography.font,
+      color: legacy.color || defaultTypography.color,
+      alignment: legacy.alignment || defaultTypography.alignment,
+      weight: defaults.weight,
+      letterSpacing: "tracking-tight",
+    }
+    const resolvedFont = font || typo.font || "font-sans"
     const raw = typeof text === "string" ? text : String(text || "")
-    // All content is sanitized via DOMPurify — this is an admin-only design tool
-    // where content is authored by authenticated users, never untrusted input
     const clean = sanitize(raw)
-    // Unwrap Tiptap's <p> tags — heading content goes inside the semantic heading element
     const unwrapped = clean
       .replace(/<p>/g, "")
       .replace(/<\/p>/g, "<br>")
       .replace(/<br>$/, "")
     return createElement(level, {
       className: cn(
-        levelStyles[level]?.className,
-        alignment,
-        color,
-        font,
-        "[&_a]:underline [&_mark]:bg-yellow-200/60 [&_mark]:px-1 [&_mark]:rounded-sm",
+        resolvedFont,
+        typo.weight || defaults.weight,
+        defaults.size,
+        defaults.leading,
+        typo.letterSpacing,
+        typo.alignment,
+        typo.color,
+        typo.transform,
+        "[&_a]:underline",
       ),
       dangerouslySetInnerHTML: { __html: unwrapped || "Your Headline Here" },
     })
