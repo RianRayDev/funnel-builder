@@ -30,9 +30,9 @@ export function HighlightPicker({ editor, variant = "light" }: HighlightPickerPr
 
   function apply(attrs: { color?: string; radius?: string; padding?: string; highlightStyle?: string }) {
     const merged = { ...currentAttrs, ...attrs }
-    // extendMarkRange selects the full highlighted text so attribute updates apply to the whole mark
     if (isActive) {
-      editor.chain().focus().extendMarkRange("fancyHighlight").setFancyHighlight(merged).run()
+      // Use updateAttributes to reliably replace attrs on the existing mark range
+      editor.chain().focus().extendMarkRange("fancyHighlight").updateAttributes("fancyHighlight", merged).run()
     } else {
       editor.chain().focus().setFancyHighlight(merged).run()
     }

@@ -9,6 +9,8 @@ import { useEditor, EditorContent } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import TextAlign from "@tiptap/extension-text-align"
 import Link from "@tiptap/extension-link"
+import { TextStyle } from "@tiptap/extension-text-style"
+import { Color } from "@tiptap/extension-color"
 import { FancyUnderline } from "@/lib/tiptap-extensions/fancy-underline"
 import { FancyHighlight } from "@/lib/tiptap-extensions/fancy-highlight"
 import { sanitize } from "@/components/RichTextField"
@@ -36,6 +38,8 @@ export function InlineEditor({ value, onSave, onClose, rect, className, style }:
       }),
       FancyUnderline,
       FancyHighlight,
+      TextStyle,
+      Color.configure({ types: ["textStyle"] }),
       TextAlign.configure({ types: ["paragraph"] }),
       Link.configure({ openOnClick: false, HTMLAttributes: { target: "_blank", rel: "noopener noreferrer" } }),
     ],
@@ -112,7 +116,7 @@ export function InlineEditor({ value, onSave, onClose, rect, className, style }:
         }}
       >
         <div
-          className={cn("rounded-lg bg-white p-1 ring-2 ring-indigo-500 shadow-lg", className)}
+          className={cn("rounded-lg p-1 ring-2 ring-indigo-500", className)}
           style={style}
         >
           <EditorContent editor={editor} />

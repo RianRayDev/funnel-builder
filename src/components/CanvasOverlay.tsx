@@ -255,6 +255,17 @@ export function CanvasOverlay({ children }: { children: React.ReactNode }) {
     dispatch({ type: "remove", index: loc.index, zone: loc.zone } as any)
   }, [selectedId, appState.data, dispatch])
 
+  // Hide the original component DOM while inline editing so the overlay
+  // shows the text without a ghosted duplicate underneath.
+  useEffect(() => {
+    if (!inlineEdit) return
+    const el = findComponentElement(inlineEdit.componentId)
+    if (!el) return
+    const prevVisibility = el.style.visibility
+    el.style.visibility = "hidden"
+    return () => { el.style.visibility = prevVisibility }
+  }, [inlineEdit, findComponentElement])
+
   return (
     <div ref={canvasRef} className="relative">
       {children}

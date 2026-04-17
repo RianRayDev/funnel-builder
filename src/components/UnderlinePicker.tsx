@@ -35,9 +35,9 @@ export function UnderlinePicker({ editor, variant = "light" }: UnderlinePickerPr
 
   function apply(attrs: Record<string, string>) {
     const merged = { ...currentAttrs, ...attrs }
-    // extendMarkRange selects the full underlined text so attribute updates apply to the whole mark
     if (isActive) {
-      editor.chain().focus().extendMarkRange("fancyUnderline").setFancyUnderline(merged).run()
+      // Use updateAttributes to reliably replace attrs on the existing mark range
+      editor.chain().focus().extendMarkRange("fancyUnderline").updateAttributes("fancyUnderline", merged).run()
     } else {
       editor.chain().focus().setFancyUnderline(merged).run()
     }

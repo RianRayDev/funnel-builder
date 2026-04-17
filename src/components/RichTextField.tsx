@@ -3,12 +3,15 @@ import { useEditor, EditorContent, type Editor } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import TextAlign from "@tiptap/extension-text-align"
 import Link from "@tiptap/extension-link"
+import { TextStyle } from "@tiptap/extension-text-style"
+import { Color } from "@tiptap/extension-color"
 import DOMPurify from "dompurify"
 import { cn } from "@/lib/utils"
 import { FancyUnderline } from "@/lib/tiptap-extensions/fancy-underline"
 import { FancyHighlight } from "@/lib/tiptap-extensions/fancy-highlight"
 import { UnderlinePicker } from "@/components/UnderlinePicker"
 import { HighlightPicker } from "@/components/HighlightPicker"
+import { TextColorPicker } from "@/components/TextColorPicker"
 import {
   Bold, Italic, Link2, AlignLeft, AlignCenter, AlignRight, RemoveFormatting,
 } from "lucide-react"
@@ -89,6 +92,7 @@ function Toolbar({ editor, showAlign, minimal }: { editor: Editor; showAlign?: b
         <>
           <UnderlinePicker editor={editor} />
           <HighlightPicker editor={editor} />
+          <TextColorPicker editor={editor} />
 
           <div className="mx-0.5 h-4 w-px bg-gray-100" />
 
@@ -147,6 +151,8 @@ export function RichTextField({
       }),
       FancyUnderline,
       FancyHighlight,
+      TextStyle,
+      Color.configure({ types: ["textStyle"] }),
       TextAlign.configure({ types: ["paragraph"] }),
       Link.configure({ openOnClick: false, HTMLAttributes: { target: "_blank", rel: "noopener noreferrer" } }),
     ],
@@ -166,13 +172,16 @@ export function RichTextField({
 
   useEffect(() => {
     if (!editor) return
-    // Skip if this change came from our own onUpdate — the editor is already in sync
+    // Fast path: ignore echoes of our own emission
     if (value === lastEmittedRef.current) return
-    const current = editor.getHTML()
-    const sanitized = sanitize(value || "")
-    if (current !== sanitized && sanitized !== "<p></p>") {
-      editor.commands.setContent(sanitized, { emitUpdate: false })
-    }
+    // Robust path: compare the sanitized form of what the editor already has
+    // vs the incoming value. If they match, the editor is already in sync —
+    // don't call setContent (which would reset the caret to the end).
+    const incoming = sanitize(value || "")
+    const currentSanitized = sanitize(editor.getHTML())
+    if (incoming === currentSanitized) return
+    if (incoming === "<p></p>") return
+    editor.commands.setContent(incoming, { emitUpdate: false })
   }, [value, editor])
 
   if (!editor) return null

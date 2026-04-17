@@ -6,6 +6,7 @@ import { useState, useRef } from "react"
 import { cn } from "@/lib/utils"
 import { UnderlinePicker } from "@/components/UnderlinePicker"
 import { HighlightPicker } from "@/components/HighlightPicker"
+import { TextColorPicker } from "@/components/TextColorPicker"
 import { DraggablePanel } from "@/components/DraggablePanel"
 import {
   Bold, Italic, Link2, AlignLeft, AlignCenter, AlignRight,
@@ -70,6 +71,7 @@ export function InlineToolbar({ editor, onSave, onClose }: { editor: Editor; onS
 
         <UnderlinePicker editor={editor} variant="dark" />
         <HighlightPicker editor={editor} variant="dark" />
+        <TextColorPicker editor={editor} variant="dark" />
 
         <div className="mx-1 h-4 w-px bg-white/20" />
 

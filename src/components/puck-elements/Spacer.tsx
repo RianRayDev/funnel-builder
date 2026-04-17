@@ -1,7 +1,9 @@
 import type { ComponentConfig } from "@measured/puck"
+import { cn } from "@/lib/utils"
 
 interface SpacerProps {
   height: string
+  backgroundColor: string
 }
 
 const heightOptions = [
@@ -11,6 +13,20 @@ const heightOptions = [
   { value: "h-16", label: "LG — 64px" },
   { value: "h-24", label: "XL — 96px" },
   { value: "h-32", label: "2XL — 128px" },
+]
+
+const colorOptions = [
+  { value: "", label: "None", swatch: "transparent" },
+  { value: "bg-white", label: "White", swatch: "#ffffff" },
+  { value: "bg-slate-50", label: "Light", swatch: "#f8fafc" },
+  { value: "bg-slate-100", label: "Gray", swatch: "#f1f5f9" },
+  { value: "bg-slate-800", label: "Dark", swatch: "#1e293b" },
+  { value: "bg-slate-900", label: "Darker", swatch: "#0f172a" },
+  { value: "bg-indigo-600", label: "Indigo", swatch: "#4f46e5" },
+  { value: "bg-blue-600", label: "Blue", swatch: "#2563eb" },
+  { value: "bg-emerald-600", label: "Green", swatch: "#059669" },
+  { value: "bg-rose-600", label: "Rose", swatch: "#e11d48" },
+  { value: "bg-amber-500", label: "Amber", swatch: "#f59e0b" },
 ]
 
 export const Spacer: ComponentConfig<SpacerProps> = {
@@ -33,9 +49,38 @@ export const Spacer: ComponentConfig<SpacerProps> = {
         </div>
       ),
     },
+    backgroundColor: {
+      type: "custom",
+      label: "Color",
+      render: ({ value, onChange }) => (
+        <div>
+          <label className="mb-0.5 block text-[9px] font-semibold uppercase tracking-wider text-gray-400">Color</label>
+          <div className="flex flex-wrap gap-1.5">
+            {colorOptions.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                title={opt.label}
+                onClick={() => onChange(opt.value)}
+                className={cn(
+                  "h-5 w-5 rounded-full border-2 transition-all",
+                  value === opt.value ? "border-indigo-500 scale-110 shadow-sm" : "border-gray-200 hover:border-gray-400",
+                )}
+                style={{
+                  backgroundColor: opt.swatch === "transparent" ? undefined : opt.swatch,
+                  backgroundImage: opt.swatch === "transparent" ? "linear-gradient(135deg, transparent 45%, #e5e7eb 45%, #e5e7eb 55%, transparent 55%)" : undefined,
+                  boxShadow: opt.swatch === "#ffffff" && value !== opt.value ? "inset 0 0 0 1px #e5e7eb" : undefined,
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      ),
+    },
   },
   defaultProps: {
     height: "h-8",
+    backgroundColor: "",
   },
-  render: ({ height = "h-8" }) => <div className={height} />,
+  render: ({ height = "h-8", backgroundColor = "" }) => <div className={cn(height, backgroundColor)} />,
 }
