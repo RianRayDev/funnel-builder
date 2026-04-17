@@ -15,18 +15,19 @@ const heightOptions = [
   { value: "h-32", label: "2XL — 128px" },
 ]
 
-const colorOptions = [
-  { value: "", label: "None", swatch: "transparent" },
+const bgOptions = [
   { value: "bg-white", label: "White", swatch: "#ffffff" },
   { value: "bg-slate-50", label: "Light", swatch: "#f8fafc" },
   { value: "bg-slate-100", label: "Gray", swatch: "#f1f5f9" },
+  { value: "bg-blue-50", label: "Blue", swatch: "#eff6ff" },
+  { value: "bg-amber-50", label: "Warm", swatch: "#fffbeb" },
   { value: "bg-slate-800", label: "Dark", swatch: "#1e293b" },
   { value: "bg-slate-900", label: "Darker", swatch: "#0f172a" },
+  { value: "bg-slate-950", label: "Black", swatch: "#020617" },
   { value: "bg-indigo-600", label: "Indigo", swatch: "#4f46e5" },
   { value: "bg-blue-600", label: "Blue", swatch: "#2563eb" },
   { value: "bg-emerald-600", label: "Green", swatch: "#059669" },
   { value: "bg-rose-600", label: "Rose", swatch: "#e11d48" },
-  { value: "bg-amber-500", label: "Amber", swatch: "#f59e0b" },
 ]
 
 export const Spacer: ComponentConfig<SpacerProps> = {
@@ -51,12 +52,12 @@ export const Spacer: ComponentConfig<SpacerProps> = {
     },
     backgroundColor: {
       type: "custom",
-      label: "Color",
+      label: "Background",
       render: ({ value, onChange }) => (
         <div>
-          <label className="mb-0.5 block text-[9px] font-semibold uppercase tracking-wider text-gray-400">Color</label>
+          <label className="mb-0.5 block text-[9px] font-semibold uppercase tracking-wider text-gray-400">Background</label>
           <div className="flex flex-wrap gap-1.5">
-            {colorOptions.map((opt) => (
+            {bgOptions.map((opt) => (
               <button
                 key={opt.value}
                 type="button"
@@ -67,8 +68,7 @@ export const Spacer: ComponentConfig<SpacerProps> = {
                   value === opt.value ? "border-indigo-500 scale-110 shadow-sm" : "border-gray-200 hover:border-gray-400",
                 )}
                 style={{
-                  backgroundColor: opt.swatch === "transparent" ? undefined : opt.swatch,
-                  backgroundImage: opt.swatch === "transparent" ? "linear-gradient(135deg, transparent 45%, #e5e7eb 45%, #e5e7eb 55%, transparent 55%)" : undefined,
+                  backgroundColor: opt.swatch,
                   boxShadow: opt.swatch === "#ffffff" && value !== opt.value ? "inset 0 0 0 1px #e5e7eb" : undefined,
                 }}
               />
@@ -80,7 +80,7 @@ export const Spacer: ComponentConfig<SpacerProps> = {
   },
   defaultProps: {
     height: "h-8",
-    backgroundColor: "",
+    backgroundColor: "bg-white",
   },
-  render: ({ height = "h-8", backgroundColor = "" }) => <div className={cn(height, backgroundColor)} />,
+  render: ({ height = "h-8", backgroundColor = "bg-white" }) => <div className={cn(height, backgroundColor)} />,
 }
