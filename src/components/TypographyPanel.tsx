@@ -216,6 +216,14 @@ export function TypographyPanel({
     onChange({ ...value, [key]: val })
   }
 
+  const row2Count = [showWeight, showSize, showLineHeight, showLetterSpacing].filter(Boolean).length
+  const row2GridCols: Record<number, string> = {
+    1: "grid-cols-1",
+    2: "grid-cols-2",
+    3: "grid-cols-3",
+    4: "grid-cols-4",
+  }
+
   return (
     <div className="space-y-0">
       {/* ── Row 1: Font ── */}
@@ -229,7 +237,7 @@ export function TypographyPanel({
       {(showWeight || showSize || showLineHeight || showLetterSpacing) && (
         <>
           <Divider />
-          <div className="grid grid-cols-4 gap-1.5 py-2.5">
+          <div className={cn("grid gap-1.5 py-2.5", row2GridCols[row2Count] || "grid-cols-4")}>
             {showWeight && (
               <MiniSelect
                 label="Weight"
