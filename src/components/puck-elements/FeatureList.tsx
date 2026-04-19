@@ -1,6 +1,7 @@
 import type { ComponentConfig } from "@measured/puck"
 import { cn } from "@/lib/utils"
 import { Check, Star, Zap, Shield, Heart, Award } from "lucide-react"
+import { useResponsiveGrid, responsiveColumns } from "@/hooks/useResponsiveGrid"
 
 interface FeatureListProps {
   items: { title: string; description: string }[]
@@ -62,10 +63,12 @@ export const FeatureList: ComponentConfig<FeatureListProps> = {
   },
   render: ({ items, icon, columns, style }) => {
     const Icon = iconMap[icon] || Check
+    const { ref, breakpoint } = useResponsiveGrid()
+    const cols = responsiveColumns(columns, breakpoint)
 
     if (style === "list") {
       return (
-        <div className="space-y-4">
+        <div ref={ref} className="space-y-4">
           {(items || []).map((item, i) => (
             <div key={i} className="flex items-start gap-3">
               <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10">
@@ -83,7 +86,7 @@ export const FeatureList: ComponentConfig<FeatureListProps> = {
 
     if (style === "inline") {
       return (
-        <div className={cn("grid gap-6 rc-grid", columns === "grid-cols-3" && "rc-grid-tablet", columns)}>
+        <div ref={ref} className={cn("grid gap-6", cols)}>
           {(items || []).map((item, i) => (
             <div key={i} className="flex items-start gap-3">
               <Icon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
@@ -98,7 +101,7 @@ export const FeatureList: ComponentConfig<FeatureListProps> = {
     }
 
     return (
-      <div className={cn("grid gap-4 rc-grid", columns === "grid-cols-3" && "rc-grid-tablet", columns)}>
+      <div ref={ref} className={cn("grid gap-4", cols)}>
         {(items || []).map((item, i) => (
           <div key={i} className="rounded-xl border border-border/50 bg-card p-5">
             <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">

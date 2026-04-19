@@ -1,5 +1,6 @@
 import type { ComponentConfig } from "@measured/puck"
 import { cn } from "@/lib/utils"
+import { useResponsiveGrid, responsiveColumns } from "@/hooks/useResponsiveGrid"
 
 interface ColumnsProps {
   columns: string
@@ -64,8 +65,9 @@ export const Columns: ComponentConfig<ColumnsProps> = {
   },
   render: ({ columns = "grid-cols-2", gap = "gap-6", puck }) => {
     const colCount = parseInt(columns.replace("grid-cols-", ""))
+    const { ref, breakpoint } = useResponsiveGrid()
     return (
-      <div className={cn("grid", columns, gap, "rc-grid", colCount > 2 && "rc-grid-tablet")}>
+      <div ref={ref} className={cn("grid", responsiveColumns(columns, breakpoint), gap)}>
         {Array.from({ length: colCount }).map((_, i) => (
           <div key={i}>
             {(puck as any).renderDropZone({ zone: `column-${i}` })}

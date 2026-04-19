@@ -1,6 +1,7 @@
 import type { ComponentConfig } from "@measured/puck"
 import { cn } from "@/lib/utils"
 import { Check } from "lucide-react"
+import { useResponsiveGrid, responsiveColumns } from "@/hooks/useResponsiveGrid"
 
 interface PricingTableProps {
   plans: {
@@ -39,8 +40,12 @@ export const PricingTable: ComponentConfig<PricingTableProps> = {
       { name: "Enterprise", price: "$99", period: "/month", description: "For large teams", features: "Everything in Pro\nUnlimited visitors\nDedicated support\nWhite label\nAPI access", buttonText: "Contact Us", buttonLink: "#", highlighted: false },
     ],
   },
-  render: ({ plans }) => (
-    <div className={cn("grid gap-6 rc-grid", (plans?.length ?? 0) > 2 && "rc-grid-tablet", plans?.length === 2 ? "grid-cols-2" : plans?.length === 3 ? "grid-cols-3" : "grid-cols-1")}>
+  render: ({ plans }) => {
+    const rawCols = plans?.length === 2 ? "grid-cols-2" : plans?.length === 3 ? "grid-cols-3" : "grid-cols-1"
+    const { ref, breakpoint } = useResponsiveGrid()
+    const cols = responsiveColumns(rawCols, breakpoint)
+    return (
+    <div ref={ref} className={cn("grid gap-6", cols)}>
       {(plans || []).map((plan, i) => (
         <div key={i} className={cn(
           "relative flex flex-col rounded-2xl border p-6",
@@ -78,5 +83,6 @@ export const PricingTable: ComponentConfig<PricingTableProps> = {
         </div>
       ))}
     </div>
-  ),
+    )
+  },
 }
