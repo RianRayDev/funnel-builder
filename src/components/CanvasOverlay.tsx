@@ -13,6 +13,8 @@ import { Undo2, Redo2 } from "lucide-react"
 import { usePuck } from "@measured/puck"
 import { FloatingToolbar, TEXT_COMPONENTS } from "@/components/FloatingToolbar"
 import { InlineEditor } from "@/components/InlineEditor"
+import { ViewportContext } from "@/hooks/useResponsiveGrid"
+import type { Breakpoint } from "@/hooks/useResponsiveGrid"
 import type { Data, ComponentData } from "@measured/puck"
 
 /** Which prop holds the primary text for each text component */
@@ -85,7 +87,9 @@ function updateComponentProp(data: Data, componentId: string, propName: string, 
   return cloned
 }
 
-export function CanvasOverlay({ children }: { children: React.ReactNode }) {
+const viewportWidths = { desktop: "100%", tablet: "768px", mobile: "375px" }
+
+export function CanvasOverlay({ children, viewport = "desktop" }: { children: React.ReactNode; viewport?: "desktop" | "tablet" | "mobile" }) {
   const { selectedItem, dispatch, appState, history } = usePuck()
   const [selectedRect, setSelectedRect] = useState<DOMRect | null>(null)
   const [inlineEdit, setInlineEdit] = useState<InlineEditState | null>(null)
@@ -266,9 +270,19 @@ export function CanvasOverlay({ children }: { children: React.ReactNode }) {
     return () => { el.style.visibility = prevVisibility }
   }, [inlineEdit, findComponentElement])
 
+  const isConstrained = viewport !== "desktop"
+  const viewportBreakpoint: Breakpoint | null = isConstrained ? (viewport as Breakpoint) : null
+
   return (
     <div ref={canvasRef} className="relative funnel-viewport">
-      {children}
+      <div
+        className={isConstrained ? "mx-auto overflow-hidden bg-white shadow-sm transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]" : undefined}
+        style={isConstrained ? { width: viewportWidths[viewport], maxWidth: "100%" } : undefined}
+      >
+        <ViewportContext.Provider value={viewportBreakpoint}>
+          {children}
+        </ViewportContext.Provider>
+      </div>
 
       {/* Undo / Redo — portaled into nav slot */}
       {undoSlot && createPortal(

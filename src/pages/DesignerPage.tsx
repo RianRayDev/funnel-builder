@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router"
 import { Puck } from "@measured/puck"
 import "@measured/puck/puck.css"
 import { motion } from "framer-motion"
-import { ArrowLeft, Eye, Download, Save, Check, Loader2, Crown, CircleDot, Rocket } from "lucide-react"
+import { ArrowLeft, Eye, Download, Save, Check, Loader2, Crown, CircleDot, Rocket, Monitor, Tablet, Smartphone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { puckConfig } from "@/lib/puck-config"
 import { store } from "@/lib/store"
@@ -27,6 +27,7 @@ export function DesignerPage() {
   const resolvedSlug = slug || "main"
   const [project, setProject] = useState(() => store.getBySlug(resolvedSlug))
   const [saveState, setSaveState] = useState<SaveState>("saved")
+  const [viewport, setViewport] = useState<"desktop" | "tablet" | "mobile">("desktop")
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const latestData = useRef<Data | null>(null)
 
@@ -100,7 +101,7 @@ export function DesignerPage() {
     <div className="flex h-screen flex-col bg-[var(--background)]">
       {/* Toolbar */}
       <motion.header
-        className="flex h-12 shrink-0 items-center justify-between border-b border-black/[0.06] bg-white/80 px-3 backdrop-blur-xl"
+        className="relative flex h-12 shrink-0 items-center justify-between border-b border-black/[0.06] bg-white/80 px-3 backdrop-blur-xl"
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
@@ -125,6 +126,33 @@ export function DesignerPage() {
           <div className="ml-1 h-4 w-px bg-black/[0.06]" />
           <div id="puck-nav-undo-slot" />
         </div>
+
+        {/* Viewport switcher — centered */}
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-0.5 rounded-lg bg-black/[0.04] p-0.5">
+          {[
+            { value: "desktop" as const, icon: Monitor, label: "Desktop" },
+            { value: "tablet" as const, icon: Tablet, label: "Tablet" },
+            { value: "mobile" as const, icon: Smartphone, label: "Mobile" },
+          ].map((opt) => {
+            const Icon = opt.icon
+            const active = viewport === opt.value
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                title={opt.label}
+                onClick={() => setViewport(opt.value)}
+                className={cn(
+                  "flex h-6 w-7 items-center justify-center rounded-md transition-all",
+                  active ? "bg-white shadow-sm text-[#1d1d1f]" : "text-[#1d1d1f]/40 hover:text-[#1d1d1f]/70",
+                )}
+              >
+                <Icon className="h-3 w-3" />
+              </button>
+            )
+          })}
+        </div>
+
         <div className="flex items-center gap-1.5">
           {/* Status toggle */}
           {project.status !== "published" && (
@@ -173,7 +201,7 @@ export function DesignerPage() {
               header: () => <div style={{ display: "none" }} />,
               headerActions: () => <div style={{ display: "none" }} />,
               actionBar: () => <div style={{ display: "none" }} />,
-              preview: ({ children }) => <CanvasOverlay>{children}</CanvasOverlay>,
+              preview: ({ children }) => <CanvasOverlay viewport={viewport}>{children}</CanvasOverlay>,
             }}
           />
         </ErrorBoundary>

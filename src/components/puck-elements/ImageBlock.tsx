@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useRef, useState, useEffect } from "react"
 import type { ComponentConfig } from "@measured/puck"
 import { cn } from "@/lib/utils"
 import { ImageIcon, Upload, Loader2, Grid2x2, X } from "lucide-react"
@@ -202,26 +202,99 @@ export const ImageBlock: ComponentConfig<ImageBlockProps> = {
     objectPosition: {
       type: "custom",
       label: "Focus Point",
-      render: ({ value, onChange }) => (
-        <div className="space-y-1.5">
-          <div className="mx-auto grid w-20 grid-cols-3 gap-1 rounded-lg bg-gray-100 p-1.5">
-            {positionOptions.map((opt) => (
-              <button
-                key={opt.v}
-                type="button"
-                onClick={() => onChange(opt.v)}
+      render: ({ value, onChange }) => {
+        const gridRef = useRef<HTMLDivElement>(null)
+        const [dragging, setDragging] = useState(false)
+        const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null)
+
+        const posToCoords = (pos: string) => {
+          const opt = positionOptions.find((o) => o.v === pos)
+          return opt ? { x: opt.c * 50, y: opt.r * 50 } : { x: 50, y: 50 }
+        }
+
+        const snapToNearest = (x: number, y: number) => {
+          const snapX = Math.round(Math.max(0, Math.min(100, x)) / 50) * 50
+          const snapY = Math.round(Math.max(0, Math.min(100, y)) / 50) * 50
+          return positionOptions.find((o) => o.c * 50 === snapX && o.r * 50 === snapY)?.v || "center center"
+        }
+
+        const getPercent = (e: React.PointerEvent | PointerEvent) => {
+          const rect = gridRef.current?.getBoundingClientRect()
+          if (!rect) return { x: 50, y: 50 }
+          const pad = 10
+          const x = ((e.clientX - rect.left - pad) / (rect.width - pad * 2)) * 100
+          const y = ((e.clientY - rect.top - pad) / (rect.height - pad * 2)) * 100
+          return { x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) }
+        }
+
+        useEffect(() => {
+          if (!dragging) return
+          const onMove = (e: PointerEvent) => {
+            e.preventDefault()
+            setDragPos(getPercent(e))
+          }
+          const onUp = (e: PointerEvent) => {
+            const pos = getPercent(e)
+            onChange(snapToNearest(pos.x, pos.y))
+            setDragging(false)
+            setDragPos(null)
+          }
+          window.addEventListener("pointermove", onMove)
+          window.addEventListener("pointerup", onUp)
+          return () => {
+            window.removeEventListener("pointermove", onMove)
+            window.removeEventListener("pointerup", onUp)
+          }
+        })
+
+        const current = dragPos || posToCoords(value || "center center")
+        const pad = 10
+
+        return (
+          <div className="space-y-1.5">
+            <div
+              ref={gridRef}
+              className="relative mx-auto h-20 w-20 cursor-pointer rounded-xl bg-gray-100"
+              onPointerDown={(e) => {
+                e.preventDefault()
+                const pos = getPercent(e)
+                setDragPos(pos)
+                setDragging(true)
+              }}
+              onClick={(e) => {
+                if (dragging) return
+                const pos = getPercent(e as unknown as React.PointerEvent)
+                onChange(snapToNearest(pos.x, pos.y))
+              }}
+            >
+              {positionOptions.map((opt) => (
+                <div
+                  key={opt.v}
+                  className="absolute h-2 w-2 rounded-full bg-white shadow-sm"
+                  style={{
+                    left: `${pad + (opt.c / 2) * (80 - pad * 2)}px`,
+                    top: `${pad + (opt.r / 2) * (80 - pad * 2)}px`,
+                    transform: "translate(-50%, -50%)",
+                  }}
+                />
+              ))}
+              <div
                 className={cn(
-                  "h-5 w-5 rounded-full border-2 transition-all",
-                  value === opt.v
-                    ? "border-blue-500 bg-blue-500 scale-110"
-                    : "border-gray-300 bg-white hover:border-gray-400",
+                  "absolute h-3.5 w-3.5 rounded-full bg-blue-500 shadow-md ring-2 ring-white",
+                  dragging ? "scale-125" : "transition-all duration-200",
                 )}
+                style={{
+                  left: `${pad + (current.x / 100) * (80 - pad * 2)}px`,
+                  top: `${pad + (current.y / 100) * (80 - pad * 2)}px`,
+                  transform: "translate(-50%, -50%)",
+                  cursor: dragging ? "grabbing" : "grab",
+                }}
               />
-            ))}
+            </div>
+            <p className="text-center text-[9px] text-gray-400">{value || "center center"}</p>
           </div>
-          <p className="text-center text-[9px] text-gray-400">{value || "center center"}</p>
-        </div>
-      ),
+        )
+      },
     },
   },
   defaultProps: {
