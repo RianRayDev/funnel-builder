@@ -151,7 +151,7 @@ export const Section: ComponentConfig<SectionProps> = {
     const dark = isDarkBg(backgroundColor)
     return (
       <section className={cn("w-full px-6", backgroundColor, paddingY, dark && "text-white")}>
-        <div className={cn("mx-auto flex", maxWidth, direction, distribute, align, gap)}>
+        <div className={cn("mx-auto flex", maxWidth, direction, distribute, align, gap, direction === "flex-row" && "rc-flex-row")}>
           {(puck as any).renderDropZone({ zone: "content" })}
         </div>
       </section>

@@ -9,9 +9,11 @@ import { GripVertical } from "lucide-react"
 interface DraggablePanelProps {
   children: React.ReactNode
   className?: string
+  showGrip?: boolean
+  style?: React.CSSProperties
 }
 
-export function DraggablePanel({ children, className }: DraggablePanelProps) {
+export function DraggablePanel({ children, className, showGrip = false, style }: DraggablePanelProps) {
   const panelRef = useRef<HTMLDivElement>(null)
   const [offset, setOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
   const dragging = useRef(false)
@@ -46,15 +48,16 @@ export function DraggablePanel({ children, className }: DraggablePanelProps) {
     <div
       ref={panelRef}
       className={className}
-      style={{ transform: `translate(${offset.x}px, ${offset.y}px)` }}
+      style={{ ...style, transform: `translate(${offset.x}px, ${offset.y}px)` }}
     >
-      {/* Drag handle */}
-      <div
-        onMouseDown={handleMouseDown}
-        className="mb-1 flex shrink-0 cursor-grab items-center justify-center active:cursor-grabbing"
-      >
-        <GripVertical className="h-3.5 w-3.5 text-gray-300" />
-      </div>
+      {showGrip && (
+        <div
+          onMouseDown={handleMouseDown}
+          className="mb-1 flex shrink-0 cursor-grab items-center justify-center active:cursor-grabbing"
+        >
+          <GripVertical className="h-3.5 w-3.5 text-gray-300" />
+        </div>
+      )}
       {children}
     </div>
   )

@@ -4,6 +4,7 @@ import { motion } from "framer-motion"
 import {
   ArrowLeft, Globe, Download, Check, Clock,
   Copy, Crown, Layers, ArrowUpRight, CircleDot,
+  Pencil, Rocket, ChevronRight,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { store } from "@/lib/store"
@@ -11,11 +12,14 @@ import type { Project } from "@/types"
 
 export function ProductionPage() {
   const navigate = useNavigate()
-  const [projects] = useState(() => store.list())
+  const [projects, setProjects] = useState(() => store.list())
   const [copied, setCopied] = useState<string | null>(null)
 
   const published = projects.filter((p) => p.status === "published")
-  const drafts = projects.filter((p) => p.status !== "published")
+  const ready = projects.filter((p) => p.status === "ready")
+  const building = projects.filter((p) => p.status === "building")
+
+  function refresh() { setProjects(store.list()) }
 
   function handleExport(project: Project) {
     const blob = new Blob([JSON.stringify(project.content, null, 2)], { type: "application/json" })
@@ -30,12 +34,11 @@ export function ProductionPage() {
     setTimeout(() => setCopied(null), 2000)
   }
 
-  function handleMarkPublished(id: string) { store.update(id, { status: "published" }); window.location.reload() }
-  function handleUnpublish(id: string) { store.update(id, { status: "building" }); window.location.reload() }
+  function handleMarkPublished(id: string) { store.update(id, { status: "published" }); refresh() }
+  function handleUnpublish(id: string) { store.update(id, { status: "ready" }); refresh() }
 
   return (
     <div className="min-h-screen bg-[var(--bg-app)]">
-      {/* Header */}
       <header className="sticky top-0 z-30 border-b border-[var(--border-default)]" style={{ background: "rgba(245,245,247,0.8)", backdropFilter: "blur(20px) saturate(150%)" }}>
         <div className="mx-auto flex h-14 max-w-[960px] items-center gap-3 px-6">
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate("/funnel-builder")}>
@@ -47,7 +50,7 @@ export function ProductionPage() {
       </header>
 
       <main className="mx-auto max-w-[960px] px-6 py-10">
-        {/* Workflow explanation — editorial, not generic info box */}
+        {/* Workflow */}
         <motion.div
           className="mb-12"
           initial={{ opacity: 0, y: 8 }}
@@ -55,10 +58,10 @@ export function ProductionPage() {
           transition={{ duration: 0.5 }}
         >
           <p className="text-[var(--text-sm)] font-medium uppercase tracking-[0.12em] text-[var(--text-tertiary)]">Deployment workflow</p>
-          <div className="mt-4 flex items-center gap-3">
-            {["Export JSON", "Claude Code converts", "You deploy"].map((step, i) => (
-              <div key={step} className="flex items-center gap-3">
-                {i > 0 && <div className="h-px w-8 bg-[var(--border-default)]" />}
+          <div className="mt-4 flex items-center gap-2">
+            {["Mark Ready", "Export JSON", "Deploy manually", "Mark Published"].map((step, i) => (
+              <div key={step} className="flex items-center gap-2">
+                {i > 0 && <ChevronRight className="h-3 w-3 text-[var(--text-tertiary)]" />}
                 <div className="flex items-center gap-2">
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--bg-inset)] text-[10px] font-bold text-[var(--text-secondary)]">{i + 1}</span>
                   <span className="text-[var(--text-sm)] font-medium text-[var(--text-secondary)]">{step}</span>
@@ -68,121 +71,148 @@ export function ProductionPage() {
           </div>
         </motion.div>
 
-        {/* Live section */}
-        <section className="mb-10">
-          <div className="mb-4 flex items-center gap-2.5">
-            <CircleDot className="h-4 w-4 text-[var(--status-live-text)]" />
-            <h2 className="text-[var(--text-base)] font-semibold text-[var(--text-primary)]">Live</h2>
-            <span className="rounded-full bg-[var(--status-live-bg)] px-2 py-0.5 text-[10px] font-semibold text-[var(--status-live-text)]">{published.length}</span>
-          </div>
+        {/* Published */}
+        <Section
+          icon={<CircleDot className="h-4 w-4 text-[var(--status-live-text)]" />}
+          title="Published"
+          count={published.length}
+          countClass="bg-[var(--status-live-bg)] text-[var(--status-live-text)]"
+          emptyIcon={<Globe className="mx-auto mb-3 h-8 w-8 text-[var(--text-tertiary)]" />}
+          emptyText="No published funnels yet"
+        >
+          {published.map((p, i) => (
+            <ProjectRow key={p.id} project={p} index={i} variant="published">
+              <Button variant="ghost" size="sm" onClick={() => navigate(`/funnel-builder/preview/${p.is_main ? "main" : p.slug}`)}>
+                <ArrowUpRight className="h-3.5 w-3.5" /> Preview
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => handleCopy(p)}>
+                {copied === p.id ? <Check className="h-3.5 w-3.5 text-[var(--status-live-text)]" /> : <Copy className="h-3.5 w-3.5" />}
+                {copied === p.id ? "Copied" : "JSON"}
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => handleExport(p)}>
+                <Download className="h-3.5 w-3.5" /> Export
+              </Button>
+              <div className="ml-1 h-4 w-px bg-[var(--border-default)]" />
+              <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50" onClick={() => handleUnpublish(p.id)}>
+                Unpublish
+              </Button>
+            </ProjectRow>
+          ))}
+        </Section>
 
-          {published.length === 0 ? (
-            <div className="rounded-[var(--radius-lg)] border border-dashed border-[var(--border-default)] py-12 text-center">
-              <Globe className="mx-auto mb-3 h-8 w-8 text-[var(--text-tertiary)]" />
-              <p className="text-[var(--text-sm)] text-[var(--text-tertiary)]">No live funnels yet</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {published.map((p, i) => (
-                <motion.div
-                  key={p.id}
-                  className="group flex items-center justify-between rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-card)] px-5 py-4 shadow-[var(--shadow-xs)] transition-all hover:shadow-[var(--shadow-sm)]"
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] bg-[var(--status-live-bg)]">
-                      <Globe className="h-4 w-4 text-[var(--status-live-text)]" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[var(--text-base)] font-semibold text-[var(--text-primary)]">{p.name}</span>
-                        {p.is_main && (
-                          <span className="flex items-center gap-1 rounded-full bg-[var(--status-draft-bg)] px-2 py-0.5">
-                            <Crown className="h-2.5 w-2.5 text-[var(--status-draft-text)]" />
-                            <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--status-draft-text)]">Main</span>
-                          </span>
-                        )}
-                      </div>
-                      <span className="font-mono text-[var(--text-xs)] text-[var(--text-tertiary)]">
-                        domain.com{p.is_main ? "" : `/${p.slug}`}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="sm" onClick={() => navigate(`/funnel-builder/preview/${p.is_main ? "main" : p.slug}`)}>
-                      <ArrowUpRight className="h-3.5 w-3.5" /> Preview
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleCopy(p)}>
-                      {copied === p.id ? <Check className="h-3.5 w-3.5 text-[var(--status-live-text)]" /> : <Copy className="h-3.5 w-3.5" />}
-                      {copied === p.id ? "Copied" : "JSON"}
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleExport(p)}>
-                      <Download className="h-3.5 w-3.5" /> Export
-                    </Button>
-                    <div className="ml-1 h-4 w-px bg-[var(--border-default)]" />
-                    <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50" onClick={() => handleUnpublish(p.id)}>
-                      Unpublish
-                    </Button>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </section>
+        {/* Ready */}
+        <Section
+          icon={<Rocket className="h-4 w-4 text-[var(--status-preview-text)]" />}
+          title="Ready to Deploy"
+          count={ready.length}
+          countClass="bg-[var(--status-preview-bg)] text-[var(--status-preview-text)]"
+          emptyIcon={<Layers className="mx-auto mb-3 h-8 w-8 text-[var(--text-tertiary)]" />}
+          emptyText="No funnels ready — mark funnels as Ready in the editor"
+        >
+          {ready.map((p, i) => (
+            <ProjectRow key={p.id} project={p} index={i} variant="ready">
+              <Button variant="ghost" size="sm" onClick={() => navigate(`/funnel-builder/preview/${p.is_main ? "main" : p.slug}`)}>
+                <ArrowUpRight className="h-3.5 w-3.5" /> Preview
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => handleCopy(p)}>
+                {copied === p.id ? <Check className="h-3.5 w-3.5 text-[var(--status-live-text)]" /> : <Copy className="h-3.5 w-3.5" />}
+                {copied === p.id ? "Copied" : "JSON"}
+              </Button>
+              <Button size="sm" className="gap-1.5" onClick={() => handleExport(p)}>
+                <Download className="h-3.5 w-3.5" /> Export
+              </Button>
+              <div className="ml-1 h-4 w-px bg-[var(--border-default)]" />
+              <Button variant="ghost" size="sm" onClick={() => handleMarkPublished(p.id)}>
+                Mark Published
+              </Button>
+            </ProjectRow>
+          ))}
+        </Section>
 
-        {/* Drafts section */}
-        <section>
-          <div className="mb-4 flex items-center gap-2.5">
-            <Clock className="h-4 w-4 text-[var(--text-tertiary)]" />
-            <h2 className="text-[var(--text-base)] font-semibold text-[var(--text-primary)]">Not Published</h2>
-            <span className="rounded-full bg-[var(--bg-inset)] px-2 py-0.5 text-[10px] font-semibold text-[var(--text-tertiary)]">{drafts.length}</span>
-          </div>
-
-          {drafts.length === 0 ? (
-            <div className="rounded-[var(--radius-lg)] border border-dashed border-[var(--border-default)] py-12 text-center">
-              <Check className="mx-auto mb-3 h-8 w-8 text-[var(--status-live-text)]" />
-              <p className="text-[var(--text-sm)] text-[var(--text-tertiary)]">All funnels are published</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {drafts.map((p, i) => (
-                <motion.div
-                  key={p.id}
-                  className="flex items-center justify-between rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-card)]/60 px-5 py-4"
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.05 + 0.1 }}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] bg-[var(--bg-subtle)]">
-                      <Layers className="h-4 w-4 text-[var(--text-tertiary)]" />
-                    </div>
-                    <div>
-                      <span className="text-[var(--text-base)] font-medium text-[var(--text-secondary)]">{p.name}</span>
-                      <div className="font-mono text-[var(--text-xs)] text-[var(--text-tertiary)]">
-                        domain.com{p.is_main ? "" : `/${p.slug}`}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="sm" onClick={() => navigate(`/funnel-builder/design/${p.is_main ? "main" : p.slug}`)}>
-                      Edit
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleExport(p)}>
-                      <Download className="h-3.5 w-3.5" /> Export
-                    </Button>
-                    <Button size="sm" onClick={() => handleMarkPublished(p.id)}>
-                      Mark Live
-                    </Button>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </section>
+        {/* Building */}
+        <Section
+          icon={<Clock className="h-4 w-4 text-[var(--status-draft-text)]" />}
+          title="Building"
+          count={building.length}
+          countClass="bg-[var(--status-draft-bg)] text-[var(--status-draft-text)]"
+          emptyIcon={<Check className="mx-auto mb-3 h-8 w-8 text-[var(--status-live-text)]" />}
+          emptyText="All funnels are ready or published"
+          last
+        >
+          {building.map((p, i) => (
+            <ProjectRow key={p.id} project={p} index={i} variant="building">
+              <Button variant="ghost" size="sm" onClick={() => navigate(`/funnel-builder/design/${p.is_main ? "main" : p.slug}`)}>
+                <Pencil className="h-3.5 w-3.5" /> Edit
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => handleExport(p)}>
+                <Download className="h-3.5 w-3.5" /> Export
+              </Button>
+            </ProjectRow>
+          ))}
+        </Section>
       </main>
     </div>
+  )
+}
+
+function Section({ icon, title, count, countClass, emptyIcon, emptyText, children, last }: {
+  icon: React.ReactNode; title: string; count: number; countClass: string
+  emptyIcon: React.ReactNode; emptyText: string; children: React.ReactNode; last?: boolean
+}) {
+  return (
+    <section className={last ? "" : "mb-10"}>
+      <div className="mb-4 flex items-center gap-2.5">
+        {icon}
+        <h2 className="text-[var(--text-base)] font-semibold text-[var(--text-primary)]">{title}</h2>
+        <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${countClass}`}>{count}</span>
+      </div>
+      {count === 0 ? (
+        <div className="rounded-[var(--radius-lg)] border border-dashed border-[var(--border-default)] py-12 text-center">
+          {emptyIcon}
+          <p className="text-[var(--text-sm)] text-[var(--text-tertiary)]">{emptyText}</p>
+        </div>
+      ) : (
+        <div className="space-y-2">{children}</div>
+      )}
+    </section>
+  )
+}
+
+const variantStyles = {
+  published: { iconBg: "bg-[var(--status-live-bg)]", iconColor: "text-[var(--status-live-text)]", Icon: Globe, cardBg: "bg-[var(--bg-card)]", textColor: "text-[var(--text-primary)]" },
+  ready: { iconBg: "bg-[var(--status-preview-bg)]", iconColor: "text-[var(--status-preview-text)]", Icon: Rocket, cardBg: "bg-[var(--bg-card)]", textColor: "text-[var(--text-primary)]" },
+  building: { iconBg: "bg-[var(--bg-subtle)]", iconColor: "text-[var(--text-tertiary)]", Icon: Layers, cardBg: "bg-[var(--bg-card)]/60", textColor: "text-[var(--text-secondary)]" },
+}
+
+function ProjectRow({ project: p, index, variant, children }: {
+  project: Project; index: number; variant: keyof typeof variantStyles; children: React.ReactNode
+}) {
+  const s = variantStyles[variant]
+  return (
+    <motion.div
+      className={`group flex items-center justify-between rounded-[var(--radius-lg)] border border-[var(--border-default)] ${s.cardBg} px-5 py-4 ${variant !== "building" ? "shadow-[var(--shadow-xs)] transition-all hover:shadow-[var(--shadow-sm)]" : ""}`}
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
+    >
+      <div className="flex items-center gap-4">
+        <div className={`flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] ${s.iconBg}`}>
+          <s.Icon className={`h-4 w-4 ${s.iconColor}`} />
+        </div>
+        <div>
+          <div className="flex items-center gap-2">
+            <span className={`text-[var(--text-base)] font-semibold ${s.textColor}`}>{p.name}</span>
+            {p.is_main && (
+              <span className="flex items-center gap-1 rounded-full bg-[var(--status-draft-bg)] px-2 py-0.5">
+                <Crown className="h-2.5 w-2.5 text-[var(--status-draft-text)]" />
+                <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--status-draft-text)]">Main</span>
+              </span>
+            )}
+          </div>
+          <span className="font-mono text-[var(--text-xs)] text-[var(--text-tertiary)]">{p.slug}</span>
+        </div>
+      </div>
+      <div className="flex items-center gap-1">{children}</div>
+    </motion.div>
   )
 }

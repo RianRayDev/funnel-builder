@@ -24,7 +24,7 @@ export function PublicFunnelPage() {
 
   // Render the published funnel — clean, no banner, full-screen
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white funnel-viewport">
       <Render config={puckConfig} data={project.content} />
     </div>
   )

@@ -195,7 +195,7 @@ export const Banner: ComponentConfig<BannerProps> = {
           <RichTextContent
             html={heading}
             className={cn(
-              "mb-4 text-4xl tracking-tight sm:text-5xl [&_p]:mb-0 [&_a]:underline",
+              "mb-4 text-4xl tracking-tight rc-text-5xl [&_p]:mb-0 [&_a]:underline",
               typo.weight,
               typo.letterSpacing,
               textColor,

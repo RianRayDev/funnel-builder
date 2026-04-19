@@ -167,3 +167,48 @@ body {
   text-decoration-color: var(--underline-color, currentColor) !important;
 }
 
+/* ═══════════════════════════════════════════
+   RESPONSIVE CONTAINER SYSTEM
+   Container queries for preview viewport +
+   media query fallbacks for deployed pages
+   ═══════════════════════════════════════════ */
+
+.funnel-viewport {
+  container-type: inline-size;
+}
+
+/* ── Mobile: < 640px ─────────────────────── */
+@container (max-width: 639px) {
+  .rc-grid { grid-template-columns: 1fr !important; }
+  .rc-flex-row { flex-direction: column !important; }
+  .rc-form-inline { flex-direction: column !important; }
+  .rc-form-inline > * { flex: none !important; }
+  .rc-scale-reset { transform: none !important; }
+}
+
+@media (max-width: 639px) {
+  .rc-grid { grid-template-columns: 1fr !important; }
+  .rc-flex-row { flex-direction: column !important; }
+  .rc-form-inline { flex-direction: column !important; }
+  .rc-form-inline > * { flex: none !important; }
+  .rc-scale-reset { transform: none !important; }
+}
+
+/* ── Tablet: 640–767px ───────────────────── */
+@container (min-width: 640px) and (max-width: 767px) {
+  .rc-grid-tablet { grid-template-columns: repeat(2, 1fr) !important; }
+}
+
+@media (min-width: 640px) and (max-width: 767px) {
+  .rc-grid-tablet { grid-template-columns: repeat(2, 1fr) !important; }
+}
+
+/* ── Desktop: >= 640px — scale-up classes ── */
+@container (min-width: 640px) {
+  .rc-text-5xl { font-size: 3rem; line-height: 1; }
+}
+
+@media (min-width: 640px) {
+  .rc-text-5xl { font-size: 3rem; line-height: 1; }
+}
+

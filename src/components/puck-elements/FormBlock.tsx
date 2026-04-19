@@ -122,20 +122,22 @@ export const FormBlock: ComponentConfig<FormBlockProps> = {
     if (layout === "inline") {
       const emailField = formFields?.find((f) => f.type === "email") || formFields?.[0]
       return (
-        <form action={actionUrl || "#"} method="POST" className="flex gap-2" onSubmit={(e) => !actionUrl && e.preventDefault()}>
-          <input
-            type={emailField?.type || "email"}
-            placeholder={emailField?.placeholder || "Enter your email"}
-            required={emailField?.required}
-            className="flex h-11 flex-1 rounded-xl border border-border bg-background px-4 text-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/10"
-          />
-          <button type="submit" className={buttonClasses}>{submitLabel}</button>
-        </form>
+        <div>
+          <form className="flex gap-2 rc-form-inline" onSubmit={(e) => e.preventDefault()}>
+            <input
+              type={emailField?.type || "email"}
+              placeholder={emailField?.placeholder || "Enter your email"}
+              className="flex h-11 flex-1 rounded-xl border border-border bg-background px-4 text-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/10"
+            />
+            <button type="button" disabled className={cn(buttonClasses, "opacity-50 cursor-not-allowed")}>{submitLabel}</button>
+          </form>
+          <p className="mt-2 text-center text-[11px] text-muted-foreground/60">Form submissions coming soon</p>
+        </div>
       )
     }
 
     return (
-      <form action={actionUrl || "#"} method="POST" className="space-y-4" onSubmit={(e) => !actionUrl && e.preventDefault()}>
+      <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
         {(formFields || []).map((field, i) => (
           <div key={i} className="space-y-1.5">
             <label className="block text-sm font-medium text-foreground">
@@ -143,13 +145,14 @@ export const FormBlock: ComponentConfig<FormBlockProps> = {
               {field.required && <span className="ml-0.5 text-destructive">*</span>}
             </label>
             {field.type === "textarea" ? (
-              <textarea placeholder={field.placeholder} required={field.required} rows={3} className="flex w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/10" />
+              <textarea placeholder={field.placeholder} rows={3} className="flex w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/10" />
             ) : (
-              <input type={field.type} placeholder={field.placeholder} required={field.required} className="flex h-11 w-full rounded-xl border border-border bg-background px-4 text-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/10" />
+              <input type={field.type} placeholder={field.placeholder} className="flex h-11 w-full rounded-xl border border-border bg-background px-4 text-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/10" />
             )}
           </div>
         ))}
-        <button type="submit" className={cn(buttonClasses, "w-full")}>{submitLabel}</button>
+        <button type="button" disabled className={cn(buttonClasses, "w-full opacity-50 cursor-not-allowed")}>{submitLabel}</button>
+        <p className="text-center text-[11px] text-muted-foreground/60">Form submissions coming soon</p>
       </form>
     )
   },

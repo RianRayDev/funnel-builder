@@ -40,12 +40,12 @@ export const PricingTable: ComponentConfig<PricingTableProps> = {
     ],
   },
   render: ({ plans }) => (
-    <div className={cn("grid gap-6 max-sm:grid-cols-1", plans?.length === 2 ? "grid-cols-2" : plans?.length === 3 ? "grid-cols-3" : "grid-cols-1")}>
+    <div className={cn("grid gap-6 rc-grid", (plans?.length ?? 0) > 2 && "rc-grid-tablet", plans?.length === 2 ? "grid-cols-2" : plans?.length === 3 ? "grid-cols-3" : "grid-cols-1")}>
       {(plans || []).map((plan, i) => (
         <div key={i} className={cn(
           "relative flex flex-col rounded-2xl border p-6",
           plan.highlighted
-            ? "border-indigo-600 bg-indigo-600 text-white shadow-xl scale-105"
+            ? "border-indigo-600 bg-indigo-600 text-white shadow-xl scale-105 rc-scale-reset"
             : "border-gray-200 bg-white"
         )}>
           {plan.highlighted && (

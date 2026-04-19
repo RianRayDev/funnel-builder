@@ -9,6 +9,7 @@ import { puckConfig } from "@/lib/puck-config"
 import { store } from "@/lib/store"
 import { cn } from "@/lib/utils"
 import { CanvasOverlay } from "@/components/CanvasOverlay"
+import { ErrorBoundary } from "@/components/ErrorBoundary"
 import type { Data } from "@measured/puck"
 import type { Project } from "@/types"
 
@@ -161,19 +162,21 @@ export function DesignerPage() {
       </motion.header>
 
       <div className="flex-1 overflow-hidden">
-        <Puck
-          config={puckConfig}
-          data={project.content}
-          onChange={handleChange}
-          onPublish={handleSave}
-          iframe={{ enabled: false }}
-          overrides={{
-            header: () => <div style={{ display: "none" }} />,
-            headerActions: () => <div style={{ display: "none" }} />,
-            actionBar: () => <div style={{ display: "none" }} />,
-            preview: ({ children }) => <CanvasOverlay>{children}</CanvasOverlay>,
-          }}
-        />
+        <ErrorBoundary fallbackTitle="The editor encountered an error" showBack>
+          <Puck
+            config={puckConfig}
+            data={project.content}
+            onChange={handleChange}
+            onPublish={handleSave}
+            iframe={{ enabled: false }}
+            overrides={{
+              header: () => <div style={{ display: "none" }} />,
+              headerActions: () => <div style={{ display: "none" }} />,
+              actionBar: () => <div style={{ display: "none" }} />,
+              preview: ({ children }) => <CanvasOverlay>{children}</CanvasOverlay>,
+            }}
+          />
+        </ErrorBoundary>
       </div>
     </div>
   )

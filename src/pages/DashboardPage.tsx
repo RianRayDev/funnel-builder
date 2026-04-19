@@ -167,7 +167,7 @@ export function DashboardPage() {
                             <div className="flex items-center gap-2">
                               <h3 className="truncate text-[14px] font-semibold text-[#1d1d1f]">{project.name}</h3>
                               {project.is_main && (
-                                <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5" title="Main funnel — lives at domain.com">
+                                <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5" title="Main funnel — homepage">
                                   <Crown className="h-2.5 w-2.5 text-amber-500" />
                                   <span className="text-[9px] font-semibold uppercase tracking-wider text-amber-600">Main</span>
                                 </span>
@@ -175,9 +175,9 @@ export function DashboardPage() {
                             </div>
                             <div className="mt-1.5 flex items-center gap-1.5">
                               {project.is_main ? (
-                                <><Globe className="h-3 w-3 text-amber-500/50" /><span className="text-[11px] font-mono text-amber-600/50">domain.com</span></>
+                                <><Globe className="h-3 w-3 text-amber-500/50" /><span className="text-[11px] font-mono text-amber-600/50">/</span></>
                               ) : (
-                                <><Link2 className="h-3 w-3 text-[#1d1d1f]/20" /><span className="truncate text-[11px] font-mono text-[#1d1d1f]/25">domain.com/{project.slug}</span></>
+                                <><Link2 className="h-3 w-3 text-[#1d1d1f]/20" /><span className="truncate text-[11px] font-mono text-[#1d1d1f]/25">/{project.slug}</span></>
                               )}
                             </div>
                             <p className="mt-1 text-[11px] text-[#1d1d1f]/25">{timeAgo(project.updated_at)}</p>
@@ -248,7 +248,7 @@ export function DashboardPage() {
               style={{ background: "rgba(255,255,255,0.05)", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.2), 0 1px 0 rgba(255,255,255,0.04)" }} />
             {newName.trim() && (
               <motion.p className="mt-2 flex items-center gap-1.5 text-[11px] text-white/25" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                <Globe className="h-3 w-3" /> domain.com/<span className="font-mono text-white/40">{newName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}</span>
+                <Globe className="h-3 w-3" /> /<span className="font-mono text-white/40">{newName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}</span>
               </motion.p>
             )}
           </div>

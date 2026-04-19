@@ -63,7 +63,13 @@ export function HighlightPicker({ editor, variant = "light" }: HighlightPickerPr
       </button>
 
       {open && (
-        <DraggablePanel className="absolute left-0 top-full z-50 mt-1.5 w-52 rounded-xl border border-gray-200 bg-white p-3 shadow-xl">
+        <DraggablePanel
+          className="fixed z-[9999] w-52 rounded-xl border border-gray-200 bg-white p-3 shadow-xl"
+          style={(() => {
+            const r = ref.current?.getBoundingClientRect()
+            return { top: (r?.bottom ?? 0) + 6, left: Math.max(8, Math.min(r?.left ?? 0, window.innerWidth - 216)) }
+          })()}
+        >
           {/* Quick toggle */}
           <button
             type="button"

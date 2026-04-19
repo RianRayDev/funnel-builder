@@ -62,13 +62,16 @@ export const Columns: ComponentConfig<ColumnsProps> = {
     columns: "grid-cols-2",
     gap: "gap-6",
   },
-  render: ({ columns = "grid-cols-2", gap = "gap-6", puck }) => (
-    <div className={cn("grid", columns, gap, "max-sm:grid-cols-1")}>
-      {Array.from({ length: parseInt(columns.replace("grid-cols-", "")) }).map((_, i) => (
-        <div key={i}>
-          {(puck as any).renderDropZone({ zone: `column-${i}` })}
-        </div>
-      ))}
-    </div>
-  ),
+  render: ({ columns = "grid-cols-2", gap = "gap-6", puck }) => {
+    const colCount = parseInt(columns.replace("grid-cols-", ""))
+    return (
+      <div className={cn("grid", columns, gap, "rc-grid", colCount > 2 && "rc-grid-tablet")}>
+        {Array.from({ length: colCount }).map((_, i) => (
+          <div key={i}>
+            {(puck as any).renderDropZone({ zone: `column-${i}` })}
+          </div>
+        ))}
+      </div>
+    )
+  },
 }

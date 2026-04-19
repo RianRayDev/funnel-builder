@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react"
 import { cn } from "@/lib/utils"
 import { DraggablePanel } from "@/components/DraggablePanel"
-import { Baseline } from "lucide-react"
+import { Paintbrush } from "lucide-react"
 import type { Editor } from "@tiptap/react"
 
 interface TextColorPickerProps {
@@ -61,18 +61,27 @@ export function TextColorPicker({ editor, variant = "light" }: TextColorPickerPr
           setOpen(!open)
         }}
         className={cn(
-          "flex h-6 w-6 items-center justify-center rounded-md transition-all",
+          "flex h-6 w-6 flex-col items-center justify-center gap-0 rounded-md transition-all",
           isDark
             ? currentColor ? "bg-white/20 text-white" : "text-white/60 hover:bg-white/10 hover:text-white"
-            : currentColor ? "bg-indigo-100 text-indigo-600" : "text-gray-400 hover:bg-gray-100 hover:text-gray-600",
+            : currentColor ? "text-gray-600" : "text-gray-400 hover:bg-gray-100 hover:text-gray-600",
         )}
-        style={currentColor && !isDark ? { color: currentColor } : undefined}
       >
-        <Baseline className="h-3 w-3" />
+        <Paintbrush className="h-3 w-3" />
+        <span
+          className="mt-px h-[2px] w-3 rounded-full transition-colors"
+          style={{ backgroundColor: currentColor || (isDark ? "rgba(255,255,255,0.4)" : "#9ca3af") }}
+        />
       </button>
 
       {open && (
-        <DraggablePanel className="absolute left-0 top-full z-50 mt-1.5 w-44 rounded-xl border border-gray-200 bg-white p-3 shadow-xl">
+        <DraggablePanel
+          className="fixed z-[9999] w-44 rounded-xl border border-gray-200 bg-white p-3 shadow-xl"
+          style={(() => {
+            const r = ref.current?.getBoundingClientRect()
+            return { top: (r?.bottom ?? 0) + 6, left: Math.max(8, Math.min(r?.left ?? 0, window.innerWidth - 184)) }
+          })()}
+        >
           <label className="mb-2 block text-[10px] font-semibold uppercase tracking-wider text-gray-400">Text Color</label>
 
           <div className="mb-3 grid grid-cols-4 gap-1.5">

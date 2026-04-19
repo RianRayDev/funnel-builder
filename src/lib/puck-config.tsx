@@ -1,4 +1,5 @@
 import type { Config } from "@measured/puck"
+import { cn } from "@/lib/utils"
 import { Section } from "@/components/puck-elements/Section"
 import { Heading } from "@/components/puck-elements/Heading"
 import { TextBlock } from "@/components/puck-elements/TextBlock"
@@ -20,7 +21,59 @@ import { HTMLEmbed } from "@/components/puck-elements/HTMLEmbed"
 import { ProgressBar } from "@/components/puck-elements/ProgressBar"
 import { Banner } from "@/components/puck-elements/Banner"
 
+const pageBgOptions = [
+  { value: "", label: "White", swatch: "#ffffff" },
+  { value: "bg-slate-50", label: "Light", swatch: "#f8fafc" },
+  { value: "bg-slate-100", label: "Gray", swatch: "#f1f5f9" },
+  { value: "bg-stone-50", label: "Warm", swatch: "#fafaf9" },
+  { value: "bg-zinc-900", label: "Dark", swatch: "#18181b" },
+  { value: "bg-slate-950", label: "Black", swatch: "#020617" },
+]
+
 export const puckConfig: Config = {
+  root: {
+    fields: {
+      title: { type: "text", label: "Page Title" },
+      description: { type: "textarea", label: "Meta Description" },
+      favicon: { type: "text", label: "Favicon URL" },
+      backgroundColor: {
+        type: "custom",
+        label: "Background",
+        render: ({ value, onChange }: any) => (
+          <div>
+            <label className="mb-1 block text-[9px] font-semibold uppercase tracking-wider text-gray-400">Page Background</label>
+            <div className="flex flex-wrap gap-1.5">
+              {pageBgOptions.map((opt) => (
+                <button key={opt.value} type="button" title={opt.label} onClick={() => onChange(opt.value)}
+                  className={cn("h-5 w-5 rounded-full border-2 transition-all",
+                    (value || "") === opt.value ? "border-indigo-500 scale-110 shadow-sm" : "border-gray-200 hover:border-gray-400")}
+                  style={{ backgroundColor: opt.swatch, boxShadow: opt.swatch === "#ffffff" && (value || "") !== opt.value ? "inset 0 0 0 1px #e5e7eb" : undefined }}
+                />
+              ))}
+            </div>
+          </div>
+        ),
+      },
+      customCSS: { type: "textarea", label: "Custom CSS" },
+    },
+    defaultProps: {
+      title: "Untitled Page",
+      description: "",
+      favicon: "",
+      backgroundColor: "",
+      customCSS: "",
+    },
+    render: ({ children, puck, ...props }: any) => {
+      const bg = props.backgroundColor || ""
+      const dark = bg.includes("900") || bg.includes("950")
+      return (
+        <div className={cn("min-h-screen", bg, dark && "text-white")}>
+          {props.customCSS && <style>{props.customCSS}</style>}
+          {children}
+        </div>
+      )
+    },
+  },
   categories: {
     layout: {
       title: "Layout",

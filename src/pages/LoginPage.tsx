@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useNavigate } from "react-router"
 import { motion, AnimatePresence } from "framer-motion"
-import { Layers, Loader2, ArrowRight, ArrowLeft } from "lucide-react"
+import { Layers, Loader2, ArrowRight, ArrowLeft, Eye, EyeOff } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 import { ParticleField } from "@/components/ParticleField"
 
@@ -82,7 +82,7 @@ export function LoginPage() {
             {mode === "login" && (
               <motion.form key="login" onSubmit={handleLogin} className="space-y-4" initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 12 }} transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}>
                 <DarkField label="Email" id="email" type="email" placeholder="you@example.com" value={email} onChange={setEmail} />
-                <DarkField label="Password" id="password" type="password" placeholder="Enter your password" value={password} onChange={setPassword}
+                <DarkField label="Password" id="password" type="password" placeholder="Enter your password" value={password} onChange={setPassword} showToggle
                   labelRight={<button type="button" onClick={() => switchMode("forgot")} className="text-[12px] font-medium text-white/40 transition-colors hover:text-white/70">Forgot?</button>} />
                 {error && <ErrorMsg text={error} />}
                 <DarkSubmit loading={submitting} label="Sign In" />
@@ -92,7 +92,7 @@ export function LoginPage() {
               <motion.form key="register" onSubmit={handleRegister} className="space-y-4" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}>
                 <DarkField label="Full Name" id="name" type="text" placeholder="Your name" value={name} onChange={setName} autoFocus />
                 <DarkField label="Email" id="reg-email" type="email" placeholder="you@example.com" value={email} onChange={setEmail} />
-                <DarkField label="Password" id="reg-password" type="password" placeholder="Minimum 6 characters" value={password} onChange={setPassword} />
+                <DarkField label="Password" id="reg-password" type="password" placeholder="Minimum 6 characters" value={password} onChange={setPassword} showToggle />
                 {error && <ErrorMsg text={error} />}
                 <DarkSubmit loading={submitting} label="Create Account" />
               </motion.form>
@@ -123,16 +123,26 @@ export function LoginPage() {
   )
 }
 
-function DarkField({ label, id, type, placeholder, value, onChange, labelRight, autoFocus }: { label: string; id: string; type: string; placeholder: string; value: string; onChange: (v: string) => void; labelRight?: React.ReactNode; autoFocus?: boolean }) {
+function DarkField({ label, id, type, placeholder, value, onChange, labelRight, autoFocus, showToggle }: { label: string; id: string; type: string; placeholder: string; value: string; onChange: (v: string) => void; labelRight?: React.ReactNode; autoFocus?: boolean; showToggle?: boolean }) {
+  const [visible, setVisible] = useState(false)
+  const inputType = showToggle ? (visible ? "text" : "password") : type
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <label htmlFor={id} className="block text-[13px] font-medium text-white/60">{label}</label>
         {labelRight}
       </div>
-      <input id={id} type={type} placeholder={placeholder} value={value} onChange={(e) => onChange(e.target.value)} autoFocus={autoFocus}
-        className="flex h-12 w-full rounded-[var(--radius-lg)] border-0 px-4 text-[15px] text-white placeholder:text-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 transition-all duration-200"
-        style={{ background: "rgba(255,255,255,0.05)", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.2), 0 1px 0 rgba(255,255,255,0.04)" }} />
+      <div className="relative">
+        <input id={id} type={inputType} placeholder={placeholder} value={value} onChange={(e) => onChange(e.target.value)} autoFocus={autoFocus}
+          className={`flex h-12 w-full rounded-[var(--radius-lg)] border-0 px-4 text-[15px] text-white placeholder:text-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 transition-all duration-200${showToggle ? " pr-10" : ""}`}
+          style={{ background: "rgba(255,255,255,0.05)", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.2), 0 1px 0 rgba(255,255,255,0.04)" }} />
+        {showToggle && (
+          <button type="button" onClick={() => setVisible(v => !v)} tabIndex={-1}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/50 transition-colors">
+            {visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        )}
+      </div>
     </div>
   )
 }

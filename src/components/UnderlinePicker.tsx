@@ -44,7 +44,7 @@ export function UnderlinePicker({ editor, variant = "light" }: UnderlinePickerPr
   }
 
   function remove() {
-    editor.chain().focus().unsetFancyUnderline().run()
+    editor.chain().focus().extendMarkRange("fancyUnderline").unsetFancyUnderline().run()
     setOpen(false)
   }
 
@@ -56,8 +56,16 @@ export function UnderlinePicker({ editor, variant = "light" }: UnderlinePickerPr
     <div ref={ref} className="relative">
       <button
         type="button"
-        title="Underline"
+        title="Underline (click to toggle, hold for options)"
         onMouseDown={(e) => {
+          e.preventDefault()
+          if (editor.state.selection.empty) {
+            setOpen(!open)
+            return
+          }
+          editor.chain().focus().toggleFancyUnderline(currentAttrs).run()
+        }}
+        onContextMenu={(e) => {
           e.preventDefault()
           setOpen(!open)
         }}
@@ -72,7 +80,13 @@ export function UnderlinePicker({ editor, variant = "light" }: UnderlinePickerPr
       </button>
 
       {open && (
-        <DraggablePanel className="absolute left-0 top-full z-50 mt-1.5 w-56 rounded-xl border border-gray-200 bg-white p-3 shadow-xl">
+        <DraggablePanel
+          className="fixed z-[9999] w-56 rounded-xl border border-gray-200 bg-white p-3 shadow-xl"
+          style={(() => {
+            const r = ref.current?.getBoundingClientRect()
+            return { top: (r?.bottom ?? 0) + 6, left: Math.max(8, Math.min(r?.left ?? 0, window.innerWidth - 232)) }
+          })()}
+        >
           {/* Quick toggle */}
           <button
             type="button"

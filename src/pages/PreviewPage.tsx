@@ -6,6 +6,7 @@ import { ArrowLeft, Pencil, Crown, Monitor, Tablet, Smartphone } from "lucide-re
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { puckConfig } from "@/lib/puck-config"
+import { ErrorBoundary } from "@/components/ErrorBoundary"
 import { store } from "@/lib/store"
 
 export function PreviewPage() {
@@ -53,7 +54,7 @@ export function PreviewPage() {
             </span>
           )}
           <span className="rounded-md bg-black/[0.04] px-2 py-0.5 font-mono text-[10px] text-[#1d1d1f]/30">
-            domain.com{project.is_main ? "" : `/${project.slug}`}
+            /{project.is_main ? "" : project.slug}
           </span>
         </div>
 
@@ -96,10 +97,12 @@ export function PreviewPage() {
         <motion.div
           layout
           transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-          className="bg-white shadow-sm"
+          className="bg-white shadow-sm funnel-viewport"
           style={{ width: viewportWidths[viewport], maxWidth: "100%" }}
         >
-          <Render config={puckConfig} data={project.content} />
+          <ErrorBoundary fallbackTitle="Preview failed to render" showBack>
+            <Render config={puckConfig} data={project.content} />
+          </ErrorBoundary>
         </motion.div>
       </div>
     </div>

@@ -9,7 +9,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
-import { Undo2 } from "lucide-react"
+import { Undo2, Redo2 } from "lucide-react"
 import { usePuck } from "@measured/puck"
 import { FloatingToolbar, TEXT_COMPONENTS } from "@/components/FloatingToolbar"
 import { InlineEditor } from "@/components/InlineEditor"
@@ -267,21 +267,33 @@ export function CanvasOverlay({ children }: { children: React.ReactNode }) {
   }, [inlineEdit, findComponentElement])
 
   return (
-    <div ref={canvasRef} className="relative">
+    <div ref={canvasRef} className="relative funnel-viewport">
       {children}
 
-      {/* Undo button — portaled into nav slot */}
+      {/* Undo / Redo — portaled into nav slot */}
       {undoSlot && createPortal(
-        <button
-          type="button"
-          title="Undo"
-          disabled={!history.hasPast}
-          onClick={() => history.back()}
-          className="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-[12px] font-medium text-[#1d1d1f]/60 transition-colors hover:bg-black/[0.04] hover:text-[#1d1d1f] disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          <Undo2 className="h-3.5 w-3.5" />
-          Undo
-        </button>,
+        <div className="flex items-center gap-0.5">
+          <button
+            type="button"
+            title="Undo"
+            disabled={!history.hasPast}
+            onClick={() => history.back()}
+            className="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-[12px] font-medium text-[#1d1d1f]/60 transition-colors hover:bg-black/[0.04] hover:text-[#1d1d1f] disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Undo2 className="h-3.5 w-3.5" />
+            Undo
+          </button>
+          <button
+            type="button"
+            title="Redo"
+            disabled={!history.hasFuture}
+            onClick={() => history.forward()}
+            className="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-[12px] font-medium text-[#1d1d1f]/60 transition-colors hover:bg-black/[0.04] hover:text-[#1d1d1f] disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Redo2 className="h-3.5 w-3.5" />
+            Redo
+          </button>
+        </div>,
         undoSlot,
       )}
 

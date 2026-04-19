@@ -47,7 +47,7 @@ export function InlineEditor({ value, onSave, onClose, rect, className, style }:
     autofocus: "end",
     editorProps: {
       attributes: {
-        class: "focus:outline-none min-h-[1em] px-1",
+        class: "focus:outline-none min-h-[1em] px-1 [&_p]:m-0",
       },
     },
   })
@@ -65,6 +65,23 @@ export function InlineEditor({ value, onSave, onClose, rect, className, style }:
       left: rect.left + rect.width / 2,
     })
   }, [rect])
+
+  // Make the contenteditable fill the overlay's visible area so clicks
+  // anywhere inside the ring-bordered box land on ProseMirror rather than
+  // the wrapper div — otherwise clicks in the empty space fall through
+  // and the caret sticks at the end of the text.
+  useEffect(() => {
+    if (!editor) return
+    const dom = editor.view.dom as HTMLElement
+    dom.style.minHeight = `${rect.height}px`
+    dom.style.width = "100%"
+    dom.style.boxSizing = "border-box"
+    if (style) {
+      Object.entries(style).forEach(([key, value]) => {
+        if (value) (dom.style as any)[key] = value
+      })
+    }
+  }, [editor, rect, style])
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {

@@ -83,7 +83,7 @@ export const FeatureList: ComponentConfig<FeatureListProps> = {
 
     if (style === "inline") {
       return (
-        <div className={cn("grid gap-6 max-sm:grid-cols-1", columns)}>
+        <div className={cn("grid gap-6 rc-grid", columns === "grid-cols-3" && "rc-grid-tablet", columns)}>
           {(items || []).map((item, i) => (
             <div key={i} className="flex items-start gap-3">
               <Icon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
@@ -98,7 +98,7 @@ export const FeatureList: ComponentConfig<FeatureListProps> = {
     }
 
     return (
-      <div className={cn("grid gap-4 max-sm:grid-cols-1", columns)}>
+      <div className={cn("grid gap-4 rc-grid", columns === "grid-cols-3" && "rc-grid-tablet", columns)}>
         {(items || []).map((item, i) => (
           <div key={i} className="rounded-xl border border-border/50 bg-card p-5">
             <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
