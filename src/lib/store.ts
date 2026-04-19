@@ -39,7 +39,7 @@ function uniqueSlug(base: string, exclude?: string): string {
 function defaultContent(): Data {
   return {
     content: [],
-    root: { props: { title: "Untitled Page", description: "", favicon: "", backgroundColor: "", customCSS: "" } },
+    root: { props: { title: "Untitled Page" } as any },
   }
 }
 
