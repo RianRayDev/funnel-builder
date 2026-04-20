@@ -303,7 +303,7 @@ export function CanvasOverlay({ children, viewport = "desktop" }: { children: Re
     e.stopPropagation()
     if (!selectedRect) return
     cropStartY.current = e.clientY
-    const currentH = (selectedItem?.props as any)?.height ? parseInt((selectedItem.props as any).height) : Math.round(selectedRect.height)
+    const currentH = (selectedItem?.props as any)?.height ? parseInt((selectedItem!.props as any).height) : Math.round(selectedRect.height)
     cropStartH.current = currentH
     setCropResizing(true)
     setCropLocalHeight(currentH)
@@ -455,7 +455,7 @@ export function CanvasOverlay({ children, viewport = "desktop" }: { children: Re
 
       {/* Crop overlay — ImageBlock + Spacer */}
       {cropMode && selectedType && CROPPABLE_TYPES.has(selectedType) && selectedRect && (() => {
-        const h = cropLocalHeight ?? ((selectedItem?.props as any)?.height ? parseInt((selectedItem.props as any).height) : Math.round(selectedRect.height))
+        const h = cropLocalHeight ?? ((selectedItem?.props as any)?.height ? parseInt((selectedItem!.props as any).height) : Math.round(selectedRect.height))
         const r = cropResizing ? { ...selectedRect, height: h } : selectedRect
         return (
           <>
