@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router"
 import { motion } from "framer-motion"
 import {
@@ -15,6 +15,19 @@ export function ProductionPage() {
   const navigate = useNavigate()
   const [projects, setProjects] = useState(() => store.list())
   const [copied, setCopied] = useState<string | null>(null)
+
+  useEffect(() => {
+    supabase.from("projects").select("id, status, is_main").then(({ data: rows }) => {
+      if (!rows) return
+      for (const row of rows) {
+        const local = store.get(row.id)
+        if (local && (local.status !== row.status || local.is_main !== row.is_main)) {
+          store.update(row.id, { status: row.status as any, is_main: row.is_main })
+        }
+      }
+      setProjects(store.list())
+    })
+  }, [])
 
   const published = projects.filter((p) => p.status === "published")
   const ready = projects.filter((p) => p.status === "ready")
@@ -92,29 +105,31 @@ export function ProductionPage() {
           </div>
         </motion.div>
 
-        {/* Published */}
+        {/* Live */}
         <Section
-          icon={<CircleDot className="h-4 w-4 text-[var(--status-live-text)]" />}
-          title="Published"
+          icon={<CircleDot className="h-4 w-4 text-red-500" />}
+          title="Live"
           count={published.length}
-          countClass="bg-[var(--status-live-bg)] text-[var(--status-live-text)]"
+          countClass="bg-red-50 text-red-600"
           emptyIcon={<Globe className="mx-auto mb-3 h-8 w-8 text-[var(--text-tertiary)]" />}
-          emptyText="No published funnels yet"
+          emptyText="No live funnels — publish from Ready to Deploy"
+          titleClass="text-red-600"
         >
           {published.map((p, i) => (
             <ProjectRow key={p.id} project={p} index={i} variant="published">
-              <Button variant="ghost" size="sm" onClick={() => navigate(`/funnel-builder/preview/${p.is_main ? "main" : p.slug}`)}>
-                <ArrowUpRight className="h-3.5 w-3.5" /> Preview
+              <span className="flex items-center gap-1.5 rounded-full bg-red-500 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white animate-pulse">
+                <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                Live at /
+              </span>
+              <Button variant="ghost" size="sm" onClick={() => window.open("/", "_blank")}>
+                <ArrowUpRight className="h-3.5 w-3.5" /> View Site
               </Button>
               <Button variant="ghost" size="sm" onClick={() => handleCopy(p)}>
-                {copied === p.id ? <Check className="h-3.5 w-3.5 text-[var(--status-live-text)]" /> : <Copy className="h-3.5 w-3.5" />}
+                {copied === p.id ? <Check className="h-3.5 w-3.5 text-red-500" /> : <Copy className="h-3.5 w-3.5" />}
                 {copied === p.id ? "Copied" : "JSON"}
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => handleExport(p)}>
-                <Download className="h-3.5 w-3.5" /> Export
-              </Button>
-              <div className="ml-1 h-4 w-px bg-[var(--border-default)]" />
-              <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50" onClick={() => handleUnpublish(p.id)}>
+              <div className="ml-1 h-4 w-px bg-red-200" />
+              <Button variant="ghost" size="sm" className="text-red-400 hover:text-red-600 hover:bg-red-50" onClick={() => handleUnpublish(p.id)}>
                 Unpublish
               </Button>
             </ProjectRow>
@@ -176,15 +191,15 @@ export function ProductionPage() {
   )
 }
 
-function Section({ icon, title, count, countClass, emptyIcon, emptyText, children, last }: {
+function Section({ icon, title, count, countClass, emptyIcon, emptyText, children, last, titleClass }: {
   icon: React.ReactNode; title: string; count: number; countClass: string
-  emptyIcon: React.ReactNode; emptyText: string; children: React.ReactNode; last?: boolean
+  emptyIcon: React.ReactNode; emptyText: string; children: React.ReactNode; last?: boolean; titleClass?: string
 }) {
   return (
     <section className={last ? "" : "mb-10"}>
       <div className="mb-4 flex items-center gap-2.5">
         {icon}
-        <h2 className="text-[var(--text-base)] font-semibold text-[var(--text-primary)]">{title}</h2>
+        <h2 className={`text-[var(--text-base)] font-semibold ${titleClass || "text-[var(--text-primary)]"}`}>{title}</h2>
         <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${countClass}`}>{count}</span>
       </div>
       {count === 0 ? (
@@ -200,7 +215,7 @@ function Section({ icon, title, count, countClass, emptyIcon, emptyText, childre
 }
 
 const variantStyles = {
-  published: { iconBg: "bg-[var(--status-live-bg)]", iconColor: "text-[var(--status-live-text)]", Icon: Globe, cardBg: "bg-[var(--bg-card)]", textColor: "text-[var(--text-primary)]" },
+  published: { iconBg: "bg-red-50", iconColor: "text-red-500", Icon: Globe, cardBg: "bg-red-50/50 ring-1 ring-red-200/60", textColor: "text-[var(--text-primary)]" },
   ready: { iconBg: "bg-[var(--status-preview-bg)]", iconColor: "text-[var(--status-preview-text)]", Icon: Rocket, cardBg: "bg-[var(--bg-card)]", textColor: "text-[var(--text-primary)]" },
   building: { iconBg: "bg-[var(--bg-subtle)]", iconColor: "text-[var(--text-tertiary)]", Icon: Layers, cardBg: "bg-[var(--bg-card)]/60", textColor: "text-[var(--text-secondary)]" },
 }
