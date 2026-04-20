@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import {
   ArrowLeft, Globe, Download, Check, Clock,
   Copy, Crown, Layers, ArrowUpRight, CircleDot,
@@ -15,6 +15,7 @@ export function ProductionPage() {
   const navigate = useNavigate()
   const [projects, setProjects] = useState(() => store.list())
   const [copied, setCopied] = useState<string | null>(null)
+  const [unpublishConfirmId, setUnpublishConfirmId] = useState<string | null>(null)
 
   useEffect(() => {
     supabase.from("projects").select("*").then(({ data: rows }) => {
@@ -77,7 +78,12 @@ export function ProductionPage() {
     refresh()
   }
 
-  function handleUnpublish(id: string) { store.update(id, { status: "ready" }); refresh() }
+  async function handleRequestUnpublish(id: string) {
+    await supabase.from("projects").update({ unpublish_requested: new Date().toISOString() }).eq("id", id)
+    store.update(id, { unpublish_requested: new Date().toISOString() } as any)
+    setUnpublishConfirmId(null)
+    refresh()
+  }
 
   return (
     <div className="min-h-screen bg-[var(--bg-app)]">
@@ -136,10 +142,20 @@ export function ProductionPage() {
                 {copied === p.id ? <Check className="h-3.5 w-3.5 text-red-500" /> : <Copy className="h-3.5 w-3.5" />}
                 {copied === p.id ? "Copied" : "JSON"}
               </Button>
-              <div className="ml-1 h-4 w-px bg-red-200" />
-              <Button variant="ghost" size="sm" className="text-red-400 hover:text-red-600 hover:bg-red-50" onClick={() => handleUnpublish(p.id)}>
-                Unpublish
-              </Button>
+              {(p as any).unpublish_requested ? (
+                <span className="text-[10px] font-medium text-amber-500 italic">Pending unpublish</span>
+              ) : (
+                <>
+                  <div className="ml-1 h-4 w-px bg-red-100" />
+                  <button
+                    type="button"
+                    onClick={() => setUnpublishConfirmId(p.id)}
+                    className="text-[10px] text-gray-300 hover:text-red-400 transition-colors"
+                  >
+                    Request unpublish
+                  </button>
+                </>
+              )}
             </ProjectRow>
           ))}
         </Section>
@@ -195,6 +211,36 @@ export function ProductionPage() {
           ))}
         </Section>
       </main>
+
+      <AnimatePresence>
+        {unpublishConfirmId && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setUnpublishConfirmId(null)}
+          >
+            <motion.div
+              className="w-[380px] rounded-2xl bg-white p-6 shadow-2xl"
+              initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-red-50">
+                <CircleDot className="h-5 w-5 text-red-500" />
+              </div>
+              <h3 className="text-[15px] font-semibold text-gray-900">Request to unpublish?</h3>
+              <p className="mt-1.5 text-[13px] text-gray-500 leading-relaxed">
+                This will mark the funnel as pending for unpublish. The page will remain live until manually taken down.
+              </p>
+              <div className="mt-6 flex justify-end gap-2">
+                <Button variant="ghost" size="sm" onClick={() => setUnpublishConfirmId(null)}>Cancel</Button>
+                <Button size="sm" className="bg-red-500 hover:bg-red-600 text-white" onClick={() => handleRequestUnpublish(unpublishConfirmId)}>
+                  Request Unpublish
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
