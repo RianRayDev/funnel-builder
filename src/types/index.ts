@@ -8,6 +8,12 @@ export interface Project {
   is_main: boolean
   thumbnail_url: string | null
   content: Data
+  pending_by?: {
+    id: string
+    name: string
+    avatar_url: string | null
+    email: string
+  }
   created_at: string
   updated_at: string
 }

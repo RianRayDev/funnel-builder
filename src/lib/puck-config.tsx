@@ -20,6 +20,7 @@ import { PricingTable } from "@/components/puck-elements/PricingTable"
 import { HTMLEmbed } from "@/components/puck-elements/HTMLEmbed"
 import { ProgressBar } from "@/components/puck-elements/ProgressBar"
 import { Banner } from "@/components/puck-elements/Banner"
+import { Footer } from "@/components/puck-elements/Footer"
 
 const pageBgOptions = [
   { value: "", label: "White", swatch: "#ffffff" },
@@ -77,7 +78,7 @@ export const puckConfig: Config = {
   categories: {
     layout: {
       title: "Layout",
-      components: ["Section", "Banner", "Columns", "Spacer", "Divider"],
+      components: ["Section", "Banner", "Columns", "Spacer", "Divider", "Footer"],
     },
     content: {
       title: "Content",
@@ -113,5 +114,6 @@ export const puckConfig: Config = {
     PricingTable: PricingTable as any,
     HTMLEmbed: HTMLEmbed as any,
     ProgressBar: ProgressBar as any,
+    Footer: Footer as any,
   },
 }

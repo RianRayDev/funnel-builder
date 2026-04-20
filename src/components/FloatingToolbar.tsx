@@ -124,12 +124,12 @@ export function FloatingToolbar({
 
           <div className="mx-1 h-5 w-px bg-white/15" />
 
-          {/* Inline edit button for text components */}
-          {isTextComponent && onEdit && (
+          {/* Edit button for text and image components */}
+          {onEdit && (
             <button
               type="button"
-              title="Edit text (double-click)"
-              onClick={onEdit}
+              title={isTextComponent ? "Edit text (double-click)" : "Edit"}
+              onClick={(e) => { e.stopPropagation(); onEdit?.() }}
               className="flex h-7 items-center gap-1.5 rounded-full px-3 text-[12px] font-medium text-white/70 transition-all hover:bg-white/10 hover:text-white"
             >
               <Pencil className="h-3.5 w-3.5" />

@@ -3,7 +3,7 @@ import {
   Type, AlignLeft, List, ImageIcon, Play,
   MousePointerClick, FileInput, Code,
   MessageSquareQuote, LayoutList, HelpCircle, DollarSign,
-  Timer, TrendingUp, ShieldCheck,
+  Timer, TrendingUp, ShieldCheck, PanelBottom,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
@@ -19,6 +19,7 @@ export const componentMeta: Record<string, ComponentMeta> = {
   Columns: { icon: Columns3, description: "Multi-column grid layout" },
   Spacer: { icon: MoveVertical, description: "Vertical whitespace" },
   Divider: { icon: Minus, description: "Horizontal line separator" },
+  Footer: { icon: PanelBottom, description: "Page footer with 6 layout styles" },
 
   // Content
   Heading: { icon: Type, description: "Title with rich formatting" },

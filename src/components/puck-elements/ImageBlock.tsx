@@ -9,22 +9,31 @@ interface ImageBlockProps {
   src: string
   alt: string
   borderRadius: string
-  objectFit: string
-  maxHeight: string
+  height: string
   objectPosition: string
 }
 
-const positionOptions = [
-  { v: "top left", r: 0, c: 0 },
-  { v: "top center", r: 0, c: 1 },
-  { v: "top right", r: 0, c: 2 },
-  { v: "center left", r: 1, c: 0 },
-  { v: "center center", r: 1, c: 1 },
-  { v: "center right", r: 1, c: 2 },
-  { v: "bottom left", r: 2, c: 0 },
-  { v: "bottom center", r: 2, c: 1 },
-  { v: "bottom right", r: 2, c: 2 },
-]
+const posNameToPercent: Record<string, { x: number; y: number }> = {
+  "top left": { x: 0, y: 0 }, "top center": { x: 50, y: 0 }, "top right": { x: 100, y: 0 },
+  "center left": { x: 0, y: 50 }, "center center": { x: 50, y: 50 }, "center right": { x: 100, y: 50 },
+  "bottom left": { x: 0, y: 100 }, "bottom center": { x: 50, y: 100 }, "bottom right": { x: 100, y: 100 },
+}
+
+function parsePosition(pos: string): { x: number; y: number } {
+  if (!pos) return { x: 50, y: 50 }
+  const named = posNameToPercent[pos]
+  if (named) return named
+  const match = pos.match(/^([\d.]+)%\s+([\d.]+)%$/)
+  if (match) return { x: parseFloat(match[1]), y: parseFloat(match[2]) }
+  return { x: 50, y: 50 }
+}
+
+const maxHeightMap: Record<string, string> = {
+  "max-h-48": "192",
+  "max-h-72": "288",
+  "max-h-96": "384",
+  "max-h-[500px]": "500",
+}
 
 function validateFile(file: File): string | null {
   if (!file.type.startsWith("image/")) return "Not an image file"
@@ -89,7 +98,6 @@ function ImageUploadField({ value, onChange }: { value: string; onChange: (v: st
 
   return (
     <div className="space-y-2">
-      {/* Mode toggle */}
       <div className="flex gap-1 rounded-lg bg-gray-100 p-0.5">
         <button type="button" onClick={() => setMode("upload")}
           className={cn("flex-1 flex items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-medium transition-all",
@@ -136,7 +144,6 @@ function ImageUploadField({ value, onChange }: { value: string; onChange: (v: st
         <ImageLibrary onSelect={onChange} currentValue={value} />
       )}
 
-      {/* Preview */}
       {value && (
         <div className="relative">
           <img src={value} alt="Preview" className="h-20 w-full rounded-lg object-cover" />
@@ -154,6 +161,21 @@ function ImageUploadField({ value, onChange }: { value: string; onChange: (v: st
 
 export const ImageBlock: ComponentConfig<ImageBlockProps> = {
   label: "Image",
+  resolveData: async (data) => {
+    const props = { ...data.props }
+    if ((props as any).maxHeight && !props.height) {
+      props.height = maxHeightMap[(props as any).maxHeight] || ""
+      delete (props as any).maxHeight
+    }
+    if ((props as any).objectFit) {
+      delete (props as any).objectFit
+    }
+    if (props.objectPosition && !props.objectPosition.includes("%")) {
+      const parsed = parsePosition(props.objectPosition)
+      props.objectPosition = `${parsed.x}% ${parsed.y}%`
+    }
+    return { props }
+  },
   fields: {
     src: {
       type: "custom",
@@ -181,24 +203,6 @@ export const ImageBlock: ComponentConfig<ImageBlockProps> = {
         </div>
       ),
     },
-    objectFit: {
-      type: "select", label: "Fit",
-      options: [
-        { value: "object-cover", label: "Cover" },
-        { value: "object-contain", label: "Contain" },
-        { value: "object-fill", label: "Fill" },
-      ],
-    },
-    maxHeight: {
-      type: "select", label: "Max Height",
-      options: [
-        { value: "", label: "Auto" },
-        { value: "max-h-48", label: "Small (192px)" },
-        { value: "max-h-72", label: "Medium (288px)" },
-        { value: "max-h-96", label: "Large (384px)" },
-        { value: "max-h-[500px]", label: "XL (500px)" },
-      ],
-    },
     objectPosition: {
       type: "custom",
       label: "Focus Point",
@@ -207,23 +211,11 @@ export const ImageBlock: ComponentConfig<ImageBlockProps> = {
         const [dragging, setDragging] = useState(false)
         const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null)
 
-        const posToCoords = (pos: string) => {
-          const opt = positionOptions.find((o) => o.v === pos)
-          return opt ? { x: opt.c * 50, y: opt.r * 50 } : { x: 50, y: 50 }
-        }
-
-        const snapToNearest = (x: number, y: number) => {
-          const snapX = Math.round(Math.max(0, Math.min(100, x)) / 50) * 50
-          const snapY = Math.round(Math.max(0, Math.min(100, y)) / 50) * 50
-          return positionOptions.find((o) => o.c * 50 === snapX && o.r * 50 === snapY)?.v || "center center"
-        }
-
         const getPercent = (e: React.PointerEvent | PointerEvent) => {
           const rect = gridRef.current?.getBoundingClientRect()
           if (!rect) return { x: 50, y: 50 }
-          const pad = 10
-          const x = ((e.clientX - rect.left - pad) / (rect.width - pad * 2)) * 100
-          const y = ((e.clientY - rect.top - pad) / (rect.height - pad * 2)) * 100
+          const x = ((e.clientX - rect.left) / rect.width) * 100
+          const y = ((e.clientY - rect.top) / rect.height) * 100
           return { x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) }
         }
 
@@ -235,7 +227,7 @@ export const ImageBlock: ComponentConfig<ImageBlockProps> = {
           }
           const onUp = (e: PointerEvent) => {
             const pos = getPercent(e)
-            onChange(snapToNearest(pos.x, pos.y))
+            onChange(`${Math.round(pos.x)}% ${Math.round(pos.y)}%`)
             setDragging(false)
             setDragPos(null)
           }
@@ -247,73 +239,124 @@ export const ImageBlock: ComponentConfig<ImageBlockProps> = {
           }
         })
 
-        const current = dragPos || posToCoords(value || "center center")
-        const pad = 10
+        const current = dragPos || parsePosition(value || "50% 50%")
+        const displayValue = dragPos
+          ? `${Math.round(dragPos.x)}% ${Math.round(dragPos.y)}%`
+          : (value || "50% 50%")
 
         return (
           <div className="space-y-1.5">
             <div
               ref={gridRef}
-              className="relative mx-auto h-20 w-20 cursor-pointer rounded-xl bg-gray-100"
+              className="relative mx-auto h-16 w-full cursor-crosshair rounded-lg bg-gray-100 overflow-hidden"
               onPointerDown={(e) => {
                 e.preventDefault()
                 const pos = getPercent(e)
                 setDragPos(pos)
+                onChange(`${Math.round(pos.x)}% ${Math.round(pos.y)}%`)
                 setDragging(true)
               }}
-              onClick={(e) => {
-                if (dragging) return
-                const pos = getPercent(e as unknown as React.PointerEvent)
-                onChange(snapToNearest(pos.x, pos.y))
-              }}
             >
-              {positionOptions.map((opt) => (
-                <div
-                  key={opt.v}
-                  className="absolute h-2 w-2 rounded-full bg-white shadow-sm"
-                  style={{
-                    left: `${pad + (opt.c / 2) * (80 - pad * 2)}px`,
-                    top: `${pad + (opt.r / 2) * (80 - pad * 2)}px`,
-                    transform: "translate(-50%, -50%)",
-                  }}
-                />
-              ))}
+              <div
+                className="absolute top-0 bottom-0 w-px bg-blue-400/40 pointer-events-none"
+                style={{ left: `${current.x}%` }}
+              />
+              <div
+                className="absolute left-0 right-0 h-px bg-blue-400/40 pointer-events-none"
+                style={{ top: `${current.y}%` }}
+              />
               <div
                 className={cn(
-                  "absolute h-3.5 w-3.5 rounded-full bg-blue-500 shadow-md ring-2 ring-white",
-                  dragging ? "scale-125" : "transition-all duration-200",
+                  "absolute h-3 w-3 rounded-full bg-blue-500 shadow-md ring-2 ring-white pointer-events-none",
+                  dragging ? "scale-125" : "transition-all duration-150",
                 )}
                 style={{
-                  left: `${pad + (current.x / 100) * (80 - pad * 2)}px`,
-                  top: `${pad + (current.y / 100) * (80 - pad * 2)}px`,
+                  left: `${current.x}%`,
+                  top: `${current.y}%`,
                   transform: "translate(-50%, -50%)",
-                  cursor: dragging ? "grabbing" : "grab",
                 }}
               />
             </div>
-            <p className="text-center text-[9px] text-gray-400">{value || "center center"}</p>
+            <div className="flex items-center justify-between">
+              <p className="text-[9px] text-gray-400 tabular-nums">{displayValue}</p>
+              {value && value !== "50% 50%" && (
+                <button
+                  type="button"
+                  onClick={() => onChange("50% 50%")}
+                  className="text-[9px] text-blue-400 hover:text-blue-500 font-medium"
+                >
+                  Reset
+                </button>
+              )}
+            </div>
           </div>
         )
       },
+    },
+    height: {
+      type: "custom",
+      label: "Height",
+      render: ({ value, onChange }) => (
+        <div className="space-y-1">
+          <label className="text-[9px] font-semibold uppercase tracking-wider text-gray-400">Height</label>
+          <div className="flex items-center gap-1.5">
+            <input
+              type="number"
+              value={value || ""}
+              onChange={(e) => onChange(e.target.value)}
+              placeholder="Auto"
+              min={50}
+              className="w-full rounded-md border border-gray-200 bg-white px-2 py-1 text-[11px] font-medium text-gray-700 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/30 tabular-nums"
+            />
+            <span className="text-[10px] text-gray-400 shrink-0">px</span>
+            {value && (
+              <button type="button" onClick={() => onChange("")}
+                className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+                <X className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+          <p className="text-[9px] text-gray-400">Click Edit or double-click image to crop</p>
+        </div>
+      ),
     },
   },
   defaultProps: {
     src: "",
     alt: "Image",
     borderRadius: "rounded-xl",
-    objectFit: "object-cover",
-    maxHeight: "",
-    objectPosition: "center center",
+    height: "",
+    objectPosition: "50% 50%",
   },
-  render: ({ src, alt, borderRadius, objectFit, maxHeight, objectPosition }) =>
-    src ? (
-      <img src={src} alt={alt} loading="lazy" className={cn("w-full", borderRadius, objectFit, maxHeight)} style={{ objectPosition: objectPosition || "center center" }} />
-    ) : (
-      <div className={cn("flex h-48 w-full items-center justify-center bg-gray-100", borderRadius)}>
-        <div className="flex flex-col items-center gap-2 text-gray-300">
-          <ImageIcon className="h-10 w-10" />
-          <span className="text-xs font-medium">Upload or pick from library</span>
+  render: ({ src, alt, borderRadius, height, objectPosition }) => {
+    if (!src) {
+      return (
+        <div className={cn("flex h-48 w-full items-center justify-center bg-gray-100", borderRadius)}>
+          <div className="flex flex-col items-center gap-2 text-gray-300">
+            <ImageIcon className="h-10 w-10" />
+            <span className="text-xs font-medium">Upload or pick from library</span>
+          </div>
         </div>
+      )
+    }
+
+    const h = height ? parseInt(height) : null
+    const hasHeight = h !== null && h > 0
+    return (
+      <div
+        data-crop-target
+        className={cn("relative", borderRadius, hasHeight && "overflow-hidden")}
+        style={hasHeight ? { height: `${h}px` } : undefined}
+      >
+        <img
+          src={src}
+          alt={alt}
+          loading="lazy"
+          className={cn("w-full", borderRadius, hasHeight ? "h-full object-cover" : "")}
+          style={hasHeight ? { objectPosition: objectPosition || "50% 50%" } : undefined}
+          draggable={false}
+        />
       </div>
-    ),
+    )
+  },
 }
