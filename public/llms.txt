@@ -1,0 +1,18 @@
+# LLMs.txt — Information for AI assistants and language models
+
+> This site is a published funnel/landing page.
+
+## About
+This is a marketing funnel page built with a visual page builder. The page content is designed for human visitors seeking information about the product or service being offered.
+
+## Navigation
+- / — Main landing page (published funnel)
+- The page contains sections with headings, text, images, buttons, and calls to action
+
+## Contact
+For questions about this site, contact the site owner directly through the forms or links provided on the page.
+
+## Technical
+- Built with React and rendered server-side for SEO
+- Optimized for mobile, tablet, and desktop viewports
+- Uses structured data (JSON-LD) for search engine understanding

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Plus, Layers, MoreHorizontal, Eye, Copy, Trash2, Download, FileUp,
-  Pencil, Search, LogOut, Globe, Link2, Crown, Clock, Hammer,
+  Pencil, Search, LogOut, Globe, Link2, Crown, Clock, Hammer, Rocket,
 } from "lucide-react"
 import { store } from "@/lib/store"
 import { supabase } from "@/lib/supabase"
@@ -100,6 +100,43 @@ export function DashboardPage() {
     }
 
     setPendingConfirmId(null); refresh()
+  }
+
+  async function publishToSite(id: string) {
+    const project = store.get(id)
+    if (!project) return
+
+    let currentUser = user
+    if (!currentUser) {
+      const { data } = await supabase.auth.getUser()
+      currentUser = data.user
+    }
+
+    await supabase.from("projects").update({ is_main: false }).eq("is_main", true)
+
+    const { error } = await supabase.from("projects").upsert({
+      id: project.id,
+      owner_id: currentUser?.id || null,
+      name: project.name,
+      slug: project.slug,
+      status: "published",
+      content: project.content,
+      pending_by: (project as any).pending_by || null,
+      is_main: true,
+      created_at: project.created_at,
+      updated_at: new Date().toISOString(),
+    })
+
+    if (error) {
+      console.error("[Supabase] Publish failed:", error.message)
+      alert("Publish failed: " + error.message)
+      return
+    }
+
+    store.update(id, { status: "published", is_main: true })
+    projects.filter((p) => p.id !== id && p.is_main).forEach((p) => store.update(p.id, { is_main: false }))
+    setMenuOpen(null)
+    refresh()
   }
 
   function handleExport(project: Project) {
@@ -316,7 +353,13 @@ export function DashboardPage() {
                                       <CtxItem icon={Clock} label="Set as Pending" highlight onClick={(e) => { e.stopPropagation(); setMenuOpen(null); setPendingConfirmId(project.id) }} />
                                     )}
                                     {project.status === "ready" && (
-                                      <CtxItem icon={Hammer} label="Back to Building" onClick={(e) => { e.stopPropagation(); handleStatusChange(project.id, "building") }} />
+                                      <>
+                                        <CtxItem icon={Rocket} label="Publish to Site" highlight onClick={(e) => { e.stopPropagation(); setMenuOpen(null); publishToSite(project.id) }} />
+                                        <CtxItem icon={Hammer} label="Back to Building" onClick={(e) => { e.stopPropagation(); handleStatusChange(project.id, "building") }} />
+                                      </>
+                                    )}
+                                    {project.status === "published" && (
+                                      <CtxItem icon={Hammer} label="Unpublish" onClick={(e) => { e.stopPropagation(); handleStatusChange(project.id, "ready") }} />
                                     )}
                                     <CtxItem icon={Copy} label="Duplicate" onClick={(e) => { e.stopPropagation(); handleDuplicate(project.id) }} />
                                     <CtxItem icon={Download} label="Export JSON" onClick={(e) => { e.stopPropagation(); handleExport(project) }} />

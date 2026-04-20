@@ -5,6 +5,7 @@ import { DashboardPage } from "./pages/DashboardPage"
 import { DesignerPage } from "./pages/DesignerPage"
 import { PreviewPage } from "./pages/PreviewPage"
 import { ProductionPage } from "./pages/ProductionPage"
+import { PublicFunnelPage } from "./pages/PublicFunnelPage"
 import { ProtectedRoute } from "./components/ProtectedRoute"
 import { ErrorBoundary } from "./components/ErrorBoundary"
 
@@ -12,6 +13,10 @@ export default function App() {
   return (
     <ErrorBoundary fallbackTitle="Something went wrong" showBack>
     <Routes>
+      {/* Public funnel pages */}
+      <Route path="/" element={<PublicFunnelPage />} />
+      <Route path="/p/:slug" element={<PublicFunnelPage />} />
+
       {/* Auth */}
       <Route path="/auth" element={<LoginPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
@@ -24,9 +29,8 @@ export default function App() {
       <Route path="/funnel-builder/preview/main" element={<ProtectedRoute><PreviewPage /></ProtectedRoute>} />
       <Route path="/funnel-builder/preview/:slug" element={<ProtectedRoute><PreviewPage /></ProtectedRoute>} />
 
-      {/* Root redirects to builder */}
-      <Route path="/" element={<Navigate to="/funnel-builder" replace />} />
-      <Route path="*" element={<Navigate to="/funnel-builder" replace />} />
+      {/* Catch-all */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
     </ErrorBoundary>
   )

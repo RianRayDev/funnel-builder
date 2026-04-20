@@ -234,22 +234,24 @@ export const Columns: ComponentConfig<ColumnsProps> = {
     const cols = responsiveColumns(columns, breakpoint, { tablet: tabletColumns, mobile: mobileColumns })
     const activeCol = useSelectedCol()
     const isDesktop = breakpoint === "desktop"
+    const isEditor = typeof (puck as any)?.dragRef === "function"
     return (
       <div ref={ref} className={cn("grid", cols, gap)}>
         <style>{colArrangeCSS}</style>
         {Array.from({ length: colCount }).map((_, i) => {
           const colArrangement = (arrangement as Record<number, string>)?.[i] ?? "top"
-          const isSelected = i === activeCol
+          const isSelected = isEditor && i === activeCol
           return (
             <div
               key={i}
               data-col-arrange={isDesktop ? colArrangement : undefined}
-              onClick={(e) => { e.stopPropagation(); setSelectedCol(i) }}
+              onClick={isEditor ? (e) => { e.stopPropagation(); setSelectedCol(i) } : undefined}
               className={cn(
-                "min-h-[60px] relative transition-all cursor-pointer",
-                isSelected
+                "relative",
+                isEditor && "min-h-[60px] transition-all cursor-pointer",
+                isEditor && (isSelected
                   ? "ring-2 ring-blue-400 ring-inset rounded-sm bg-blue-50/20"
-                  : "ring-1 ring-dashed ring-gray-200/60 hover:ring-gray-300",
+                  : "ring-1 ring-dashed ring-gray-200/60 hover:ring-gray-300"),
               )}
             >
               {isSelected && (

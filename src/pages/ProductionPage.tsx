@@ -8,6 +8,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { store } from "@/lib/store"
+import { supabase } from "@/lib/supabase"
 import type { Project } from "@/types"
 
 export function ProductionPage() {
@@ -34,7 +35,27 @@ export function ProductionPage() {
     setTimeout(() => setCopied(null), 2000)
   }
 
-  function handleMarkPublished(id: string) { store.update(id, { status: "published" }); refresh() }
+  async function handlePublishToSite(id: string) {
+    const project = store.get(id)
+    if (!project) return
+    await supabase.from("projects").update({ is_main: false }).eq("is_main", true)
+    const { error } = await supabase.from("projects").upsert({
+      id: project.id,
+      name: project.name,
+      slug: project.slug,
+      status: "published",
+      content: project.content,
+      pending_by: (project as any).pending_by || null,
+      is_main: true,
+      created_at: project.created_at,
+      updated_at: new Date().toISOString(),
+    })
+    if (error) { console.error("[Supabase] Publish failed:", error.message); alert("Publish failed: " + error.message); return }
+    store.update(id, { status: "published", is_main: true })
+    projects.filter((p) => p.id !== id && p.is_main).forEach((p) => store.update(p.id, { is_main: false }))
+    refresh()
+  }
+
   function handleUnpublish(id: string) { store.update(id, { status: "ready" }); refresh() }
 
   return (
@@ -59,7 +80,7 @@ export function ProductionPage() {
         >
           <p className="text-[var(--text-sm)] font-medium uppercase tracking-[0.12em] text-[var(--text-tertiary)]">Deployment workflow</p>
           <div className="mt-4 flex items-center gap-2">
-            {["Mark Ready", "Export JSON", "Deploy manually", "Mark Published"].map((step, i) => (
+            {["Set as Pending", "Review in Preview", "Publish to Site", "Live at /"].map((step, i) => (
               <div key={step} className="flex items-center gap-2">
                 {i > 0 && <ChevronRight className="h-3 w-3 text-[var(--text-tertiary)]" />}
                 <div className="flex items-center gap-2">
@@ -122,8 +143,8 @@ export function ProductionPage() {
                 <Download className="h-3.5 w-3.5" /> Export
               </Button>
               <div className="ml-1 h-4 w-px bg-[var(--border-default)]" />
-              <Button variant="ghost" size="sm" onClick={() => handleMarkPublished(p.id)}>
-                Mark Published
+              <Button size="sm" className="gap-1.5 bg-red-500 hover:bg-red-600 text-white" onClick={() => handlePublishToSite(p.id)}>
+                <Rocket className="h-3.5 w-3.5" /> Publish to Site
               </Button>
             </ProjectRow>
           ))}
