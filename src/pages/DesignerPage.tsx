@@ -7,6 +7,7 @@ import { ArrowLeft, Eye, Download, Save, Check, Loader2, Crown, CircleDot, Rocke
 import { Button } from "@/components/ui/button"
 import { puckConfig } from "@/lib/puck-config"
 import { store } from "@/lib/store"
+import { supabase } from "@/lib/supabase"
 import { cn } from "@/lib/utils"
 import { CanvasOverlay } from "@/components/CanvasOverlay"
 import { ErrorBoundary } from "@/components/ErrorBoundary"
@@ -70,6 +71,11 @@ export function DesignerPage() {
 
   function handleSave() {
     flushSave()
+    if (project?.status === "published") {
+      const data = latestData.current || project.content
+      supabase.from("projects").update({ content: data, updated_at: new Date().toISOString() }).eq("id", project.id)
+        .then(({ error }) => { if (error) console.error("[Supabase] Live sync failed:", error.message) })
+    }
   }
 
   function handleExportJSON() {

@@ -17,12 +17,20 @@ export function ProductionPage() {
   const [copied, setCopied] = useState<string | null>(null)
 
   useEffect(() => {
-    supabase.from("projects").select("id, status, is_main").then(({ data: rows }) => {
+    supabase.from("projects").select("*").then(({ data: rows }) => {
       if (!rows) return
       for (const row of rows) {
         const local = store.get(row.id)
-        if (local && (local.status !== row.status || local.is_main !== row.is_main)) {
-          store.update(row.id, { status: row.status as any, is_main: row.is_main })
+        if (local) {
+          if (local.status !== row.status || local.is_main !== row.is_main) {
+            store.update(row.id, { status: row.status as any, is_main: row.is_main })
+          }
+        } else {
+          const content = typeof row.content === "string" ? JSON.parse(row.content) : row.content
+          const all = store.list()
+          const raw = JSON.parse(localStorage.getItem("funnel-builder-projects") || "[]")
+          raw.push({ id: row.id, name: row.name, slug: row.slug, status: row.status, is_main: row.is_main, thumbnail_url: null, content, pending_by: row.pending_by, created_at: row.created_at, updated_at: row.updated_at })
+          localStorage.setItem("funnel-builder-projects", JSON.stringify(raw))
         }
       }
       setProjects(store.list())
